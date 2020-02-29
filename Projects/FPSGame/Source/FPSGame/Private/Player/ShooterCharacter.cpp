@@ -13,9 +13,11 @@
 #include "Components/ShooterHealthComponent.h"
 #include "FPSGame.h"
 #include "Animation/AnimInstance.h"
+#include "ShooterCharacterMovement.h"
 
 // Sets default values
-AShooterCharacter::AShooterCharacter()
+AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UShooterCharacterMovement>(ACharacter::CharacterMovementComponentName))
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -34,8 +36,8 @@ AShooterCharacter::AShooterCharacter()
 	Mesh1PComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh"));
 	Mesh1PComp->SetupAttachment(CameraComp);
 	Mesh1PComp->CastShadow = false;
-	Mesh1PComp->RelativeRotation = FRotator(0.0f, 0.0f, -90.0f);
-	Mesh1PComp->RelativeLocation = FVector(0, 0, -160.0f);
+	Mesh1PComp->RelativeRotation = FRotator(0.0f, -90.0f, 0.0f);
+	Mesh1PComp->RelativeLocation = FVector(0, 0, -150.0f);
 
 	//// Create a gun mesh component
 	//GunMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun"));
@@ -56,6 +58,9 @@ AShooterCharacter::AShooterCharacter()
 	bWantsToRun = false;
 	bWantsToFire = false;
 	bWantsToRunToggled = false;
+
+	TargetingSpeedModifier = 0.5f;
+	RunningSpeedModifier = 1.5f;
 }
 
 // Called when the game starts or when spawned
@@ -190,9 +195,9 @@ bool AShooterCharacter::IsRunning() const
 		return false;
 	}
 
-	return false;
+	//return false;
 
-	//return (bWantsToRun || bWantsToRunToggled) && !GetVelocity().IsZero() && (GetVelocity().GetSafeNormal2D() | GetActorForwardVector()) > -0.1;
+	return (bWantsToRun || bWantsToRunToggled) && !GetVelocity().IsZero() && (GetVelocity().GetSafeNormal2D() | GetActorForwardVector()) > -0.1;
 }
 
 bool AShooterCharacter::IsTargeting() const
@@ -240,10 +245,10 @@ void AShooterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//if (bWantsToRunToggled && !IsRunning())
-	//{
-	//	SetRunning(false, false);
-	//}
+	if (bWantsToRunToggled && !IsRunning())
+	{
+		SetRunning(false, false);
+	}
 
 	//float TargetFOV = bWantsToZoom ? ZoomedFOV : DefaultFOV;
 	//
@@ -280,6 +285,10 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction("Targeting", IE_Pressed, this, &AShooterCharacter::OnStartTargeting);
 	PlayerInputComponent->BindAction("Targeting", IE_Released, this, &AShooterCharacter::OnStopTargeting);
+
+	PlayerInputComponent->BindAction("Run", IE_Pressed, this, &AShooterCharacter::OnStartRunning);
+	PlayerInputComponent->BindAction("RunToggle", IE_Pressed, this, &AShooterCharacter::OnStartRunningToggle);
+	PlayerInputComponent->BindAction("Run", IE_Released, this, &AShooterCharacter::OnStopRunning);
 }
 
 void AShooterCharacter::OnStartTargeting()
@@ -404,4 +413,14 @@ void AShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 	DOREPLIFETIME(AShooterCharacter, CurrentWeapon);
 	DOREPLIFETIME(AShooterCharacter, bDied);
+}
+
+float AShooterCharacter::GetTargetingSpeedModifier() const
+{
+	return TargetingSpeedModifier;
+}
+
+float AShooterCharacter::GetRunningSpeedModifier() const
+{
+	return RunningSpeedModifier;
 }

@@ -9,16 +9,20 @@
 UCLASS(Abstract)
 class FPSGAME_API AShooterCharacter : public ACharacter
 {
-	GENERATED_BODY()
+	/*Used GENERATED_UCLASS_BODY() if using a member initializer list*/
+	GENERATED_UCLASS_BODY()
 
+	/*Used GENERATED_BODY() if using a default constructor*/
+//	GENERATED_BODY()
+//
+//public:
+//	AShooterCharacter();
 
 
 	/** get mesh component */
 	USkeletalMeshComponent* GetPawnMesh() const;
 
 public:
-	AShooterCharacter();
-
 	/** play anim montage */
 	virtual float PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None) override;
 
@@ -67,6 +71,14 @@ protected:
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
 		FName WeaponAttachSocketName;
+
+	/** modifier for max movement speed */
+	UPROPERTY(EditDefaultsOnly, Category = Inventory)
+		float TargetingSpeedModifier;
+
+	/** modifier for max movement speed */
+	UPROPERTY(EditDefaultsOnly, Category = Pawn)
+		float RunningSpeedModifier;
 
 protected:
 	// Called when the game starts or when spawned
@@ -154,4 +166,12 @@ public:
 	/** get firing state */
 	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
 		bool IsFiring() const;
+
+	/** get weapon taget modifier speed	*/
+	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
+		float GetTargetingSpeedModifier() const;
+
+	/** get the modifier value for running speed */
+	UFUNCTION(BlueprintCallable, Category = Pawn)
+		float GetRunningSpeedModifier() const;
 };
