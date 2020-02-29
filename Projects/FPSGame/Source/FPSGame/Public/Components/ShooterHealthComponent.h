@@ -27,6 +27,11 @@ protected:
 
 	bool bIsDead;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HealthComponent")
+	TArray<int32> HealthPartitions;
+
+	int HealthPartitionIndex;
+
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HealthComponent")
 		uint8 TeamNum;
@@ -49,6 +54,8 @@ public:
 		void Heal(float HealAmount);
 
 	float GetHealth() const;
+	TArray<int32> GetHealthPartitions() const;
+	int GetHealthPartitionIndex() const;
 
 	// Blueprint makes it so we don't have the white execution node in blueprints
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "HealthComponent")

@@ -10,6 +10,9 @@ class USkeletalMeshComponent;
 class UDamageType;
 class UParticleSystem;
 
+// Delegate for when a weapon is fired
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponFiredSignature, AShooterWeapon*, WeaponFired);
+
 // Contains information of a single hitscan weapon linetrace
 USTRUCT()
 struct FHitScanTrace {
@@ -111,4 +114,7 @@ public:
 	virtual void BeginFiring();
 	virtual void StopFiring();
 	virtual void Reload();
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+		FOnWeaponFiredSignature OnWeaponFired;
 };

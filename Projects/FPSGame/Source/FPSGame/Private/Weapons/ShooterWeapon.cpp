@@ -74,9 +74,9 @@ void AShooterWeapon::Fire()
 
 		FVector ShotDirection = EyeRotation.Vector();
 
-		// Bullet spread
-		float HalfRad = FMath::DegreesToRadians(BulletSpread);
-		ShotDirection = FMath::VRandCone(ShotDirection, HalfRad, HalfRad);
+		//// Bullet spread
+		//float HalfRad = FMath::DegreesToRadians(BulletSpread);
+		//ShotDirection = FMath::VRandCone(ShotDirection, HalfRad, HalfRad);
 
 		FVector TraceEnd = EyeLocation + (ShotDirection * 10000);
 
@@ -90,7 +90,7 @@ void AShooterWeapon::Fire()
 		FVector TracerEndPoint = TraceEnd;
 
 		EPhysicalSurface SurfaceType = SurfaceType_Default;
-
+		
 		FHitResult Hit;
 		bool bBlockingHit = GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, COLLISION_WEAPON, QueryParams);
 		if (bBlockingHit)
@@ -130,6 +130,8 @@ void AShooterWeapon::Fire()
 		LastFiredTime = GetWorld()->TimeSeconds;
 
 		MagazineSize--;
+
+		OnWeaponFired.Broadcast(this);
 	}
 }
 

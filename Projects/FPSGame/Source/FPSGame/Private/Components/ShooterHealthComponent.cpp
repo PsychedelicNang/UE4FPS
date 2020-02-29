@@ -13,6 +13,7 @@ UShooterHealthComponent::UShooterHealthComponent()
 	SetIsReplicated(true);
 
 	TeamNum = 255;
+	HealthPartitionIndex = 0;
 }
 
 // Called when the game starts
@@ -29,7 +30,14 @@ void UShooterHealthComponent::BeginPlay()
 		}
 	}
 
-	Health = DefaultHealth;
+	if (HealthPartitions.Num() > 0)
+	{
+		Health = HealthPartitions[HealthPartitionIndex];
+	}
+	else
+	{
+		Health = DefaultHealth;
+	}
 }
 
 // Called every frame
@@ -47,13 +55,22 @@ void UShooterHealthComponent::HandleTakeAnyDamage(AActor * DamagedActor, float D
 		return;
 	}
 
-	if (DamageCauser != DamagedActor && IsFriendly(DamagedActor, DamageCauser))
+	//if (DamageCauser != DamagedActor /*&& IsFriendly(DamagedActor, DamageCauser)*/)
+	//{
+	//	return;
+	//}
+
+	// If we fall below a health parition, update the max health we can heal to
+	if (HealthPartitionIndex != HealthPartitions.Num() - 1)
 	{
-		return;
+		if (Health <= (float)HealthPartitions[HealthPartitionIndex + 1])
+		{
+			++HealthPartitionIndex;
+		}
 	}
 
 	// Update health clamped
-	Health = FMath::Clamp(Health - Damage, 0.0f, DefaultHealth);
+	Health = FMath::Clamp(Health - Damage, 0.0f, (float)HealthPartitions[HealthPartitionIndex]);
 
 	UE_LOG(LogTemp, Log, TEXT("Health Changed: %s"), *FString::SanitizeFloat(Health));
 
@@ -85,7 +102,7 @@ void UShooterHealthComponent::Heal(float HealAmount)
 		return;
 	}
 
-	Health = FMath::Clamp(Health + HealAmount, 0.0f, DefaultHealth);
+	Health = FMath::Clamp(Health + HealAmount, 0.0f, (float)HealthPartitions[HealthPartitionIndex]);
 
 	UE_LOG(LogTemp, Log, TEXT("Health Changed: %s (+%s)"), *FString::SanitizeFloat(Health), *FString::SanitizeFloat(HealAmount));
 
@@ -95,6 +112,16 @@ void UShooterHealthComponent::Heal(float HealAmount)
 float UShooterHealthComponent::GetHealth() const
 {
 	return Health;
+}
+
+TArray<int32> UShooterHealthComponent::GetHealthPartitions() const
+{
+	return HealthPartitions;
+}
+
+int UShooterHealthComponent::GetHealthPartitionIndex() const
+{
+	return HealthPartitionIndex;
 }
 
 bool UShooterHealthComponent::IsFriendly(AActor * ActorA, AActor * ActorB)

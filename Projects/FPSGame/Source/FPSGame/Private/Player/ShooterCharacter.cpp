@@ -12,6 +12,7 @@
 #include "Weapons/ShooterWeapon.h"
 #include "Components/ShooterHealthComponent.h"
 #include "FPSGame.h"
+#include "Animation/AnimInstance.h"
 
 // Sets default values
 AShooterCharacter::AShooterCharacter()
@@ -19,12 +20,27 @@ AShooterCharacter::AShooterCharacter()
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
-	SpringArmComp->bUsePawnControlRotation = true;
-	SpringArmComp->SetupAttachment(RootComponent);
+	//SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
+	//SpringArmComp->bUsePawnControlRotation = true;
+	//SpringArmComp->SetupAttachment(RootComponent);
 
-	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
-	CameraComp->SetupAttachment(SpringArmComp);
+	// Create a CameraComponent	
+	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
+	CameraComp->SetupAttachment(GetCapsuleComponent());
+	CameraComp->RelativeLocation = FVector(0, 0, BaseEyeHeight); // Position the camera
+	CameraComp->bUsePawnControlRotation = true;
+
+	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
+	Mesh1PComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh"));
+	Mesh1PComp->SetupAttachment(CameraComp);
+	Mesh1PComp->CastShadow = false;
+	Mesh1PComp->RelativeRotation = FRotator(2.0f, -15.0f, 5.0f);
+	Mesh1PComp->RelativeLocation = FVector(0, 0, -160.0f);
+
+	//// Create a gun mesh component
+	//GunMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun"));
+	//GunMeshComp->CastShadow = false;
+	//GunMeshComp->SetupAttachment(Mesh1PComp, "GripPoint");
 
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 
@@ -42,7 +58,7 @@ void AShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	DefaultFOV = CameraComp->FieldOfView;
+	//DefaultFOV = CameraComp->FieldOfView;
 
 	if (HealthComp)
 	{
@@ -64,7 +80,8 @@ void AShooterCharacter::BeginPlay()
 		if (CurrentWeapon)
 		{
 			CurrentWeapon->SetOwner(this);
-			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+			CurrentWeapon->AttachToComponent(Mesh1PComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+			CurrentWeapon->OnWeaponFired.AddDynamic(this, &AShooterCharacter::HandleOnWeaponFired);
 		}
 	}
 }
@@ -113,7 +130,7 @@ void AShooterCharacter::EndZoom()
 //{
 //	if (CurrentWeapon)
 //	{
-//		CurrentWeapon->Fire();
+//		//CurrentWeapon->Fire();
 //	}
 //}
 
@@ -157,16 +174,27 @@ void AShooterCharacter::OnHealthChanged(UShooterHealthComponent* OwningHealthCom
 	}
 }
 
+void AShooterCharacter::HandleOnWeaponFired(AShooterWeapon * WeaponFired)
+{
+	// Get the animation instance on our first person character mesh and play the Weapon Fired Montage
+	UAnimInstance* AnimInstance = (Mesh1PComp) ? Mesh1PComp->GetAnimInstance() : nullptr;
+	if (AnimInstance && WeaponFiredMontage)
+	{
+		// Play our weapon fired montage
+		AnimInstance->Montage_Play(WeaponFiredMontage);
+	}
+}
+
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	float TargetFOV = bWantsToZoom ? ZoomedFOV : DefaultFOV;
-
-	float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaTime, ZoomedInterpSpeed);
-
-	CameraComp->SetFieldOfView(NewFOV);
+	//float TargetFOV = bWantsToZoom ? ZoomedFOV : DefaultFOV;
+	//
+	//float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaTime, ZoomedInterpSpeed);
+	//
+	//CameraComp->SetFieldOfView(NewFOV);
 }
 
 // Called to bind functionality to input

@@ -10,6 +10,7 @@ class UCameraComponent;
 class USpringArmComponent;
 class AShooterWeapon;
 class UShooterHealthComponent;
+class UAnimMontage;
 
 UCLASS()
 class FPSGAME_API AShooterCharacter : public ACharacter
@@ -20,11 +21,21 @@ public:
 	AShooterCharacter();
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+
+	/** Pawn mesh: 1st person view  */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
+		USkeletalMeshComponent* Mesh1PComp;
+
+	///** Gun mesh: 1st person view (seen only by self) */
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
+	//	USkeletalMeshComponent* GunMeshComp;
+
+	/** First person camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 		UCameraComponent* CameraComp;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		USpringArmComponent* SpringArmComp;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	//	USpringArmComponent* SpringArmComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		UShooterHealthComponent* HealthComp;
@@ -51,6 +62,9 @@ protected:
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
 		FName WeaponAttachSocketName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+		UAnimMontage* WeaponFiredMontage;
 
 protected:
 	// Called when the game starts or when spawned
@@ -79,6 +93,10 @@ protected:
 	UFUNCTION()
 		void OnHealthChanged(UShooterHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
+	/*Responds to a weapon being fired from this character*/
+	UFUNCTION()
+		void HandleOnWeaponFired(AShooterWeapon* WeaponFired);
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -93,5 +111,4 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Player")
 		void StopFiring();
-
 };
