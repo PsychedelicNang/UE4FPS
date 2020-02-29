@@ -12,6 +12,7 @@
 #include "TimerManager.h"
 #include "FPSGame.h"
 #include "Net/UnrealNetwork.h"
+#include "ShooterCharacter.h"
 
 static int32 DebugWeaponDrawing = 0;
 FAutoConsoleVariableRef CVARDebugWeaponDrawing(
@@ -26,7 +27,7 @@ AShooterWeapon::AShooterWeapon()
 	MeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MeshComp"));
 	RootComponent = MeshComp;
 
-	MuzzleSocketName = "MuzzleSocket";
+	MuzzleSocketName = "MuzzleFlashSocket";
 	TracerTargetName = "BeamEnd";
 
 	BaseDamage = 20.0f;
@@ -47,6 +48,8 @@ void AShooterWeapon::BeginPlay()
 
 	TimeBetweenShots = 60 / RateOfFire;
 	MagazineSize = MagazineCapacity;
+
+	MyPawn = Cast<AShooterCharacter>(GetOwner());
 }
 
 // Called every frame
@@ -54,6 +57,48 @@ void AShooterWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AShooterWeapon::SetOwningPawn(AShooterCharacter* NewOwner)
+{
+	if (MyPawn != NewOwner)
+	{
+		Instigator = NewOwner;
+		MyPawn = NewOwner;
+		// net owner for RPC calls
+		SetOwner(NewOwner);
+	}
+}
+
+float AShooterWeapon::PlayWeaponAnimation(const FWeaponAnim& Animation)
+{
+	float Duration = 0.0f;
+	
+	if (MyPawn)
+	{
+		UAnimMontage* UseAnim = Animation.Pawn1P;
+		//UAnimMontage* UseAnim = MyPawn->IsFirstPerson() ? Animation.Pawn1P : Animation.Pawn3P;
+		if (UseAnim)
+		{
+			Duration = MyPawn->PlayAnimMontage(UseAnim);
+		}
+	}
+
+	return Duration;
+}
+
+void AShooterWeapon::StopWeaponAnimation(const FWeaponAnim& Animation)
+{
+	if (MyPawn)
+	{
+		UAnimMontage* UseAnim = Animation.Pawn1P;
+
+		//UAnimMontage* UseAnim = MyPawn->IsFirstPerson() ? Animation.Pawn1P : Animation.Pawn3P;
+		if (UseAnim)
+		{
+			MyPawn->StopAnimMontage(UseAnim);
+		}
+	}
 }
 
 void AShooterWeapon::Fire()
@@ -68,17 +113,21 @@ void AShooterWeapon::Fire()
 	AActor* MyOwner = GetOwner();
 	if (MyOwner/* && MagazineSize > 0*/)
 	{
-		FVector EyeLocation;
-		FRotator EyeRotation;
-		MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
-
-		FVector ShotDirection = EyeRotation.Vector();
+		//FVector EyeLocation;
+		//FRotator EyeRotation;
+		//MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
+		//
+		//FVector ShotDirection = EyeRotation.Vector();
 
 		//// Bullet spread
 		//float HalfRad = FMath::DegreesToRadians(BulletSpread);
 		//ShotDirection = FMath::VRandCone(ShotDirection, HalfRad, HalfRad);
 
-		FVector TraceEnd = EyeLocation + (ShotDirection * 10000);
+		FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
+
+		FVector ShotDirection = MeshComp->GetSocketRotation(MuzzleSocketName).Vector();
+
+		FVector TraceEnd = MuzzleLocation + (ShotDirection * 10000);
 
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(MyOwner);
@@ -92,7 +141,7 @@ void AShooterWeapon::Fire()
 		EPhysicalSurface SurfaceType = SurfaceType_Default;
 		
 		FHitResult Hit;
-		bool bBlockingHit = GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, COLLISION_WEAPON, QueryParams);
+		bool bBlockingHit = GetWorld()->LineTraceSingleByChannel(Hit, MuzzleLocation, TraceEnd, COLLISION_WEAPON, QueryParams);
 		if (bBlockingHit)
 		{
 			// We hit something! Deal damage...
@@ -116,7 +165,7 @@ void AShooterWeapon::Fire()
 
 		//if (DebugWeaponDrawing > 0)
 		//{
-			DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Green, false, 1.0f, 0, 1.0f);
+			DrawDebugLine(GetWorld(), MuzzleLocation, TraceEnd, FColor::Green, false, 1.0f, 0, 1.0f);
 		//}
 
 		PlayFireEffects(TracerEndPoint);
@@ -131,6 +180,8 @@ void AShooterWeapon::Fire()
 
 		MagazineSize--;
 
+		PlayWeaponAnimation(FireAnim);
+
 		OnWeaponFired.Broadcast(this);
 	}
 }
@@ -144,6 +195,7 @@ void AShooterWeapon::BeginFiring()
 void AShooterWeapon::StopFiring()
 {
 	GetWorldTimerManager().ClearTimer(TimerHandle_TimeBetweenShots);
+	StopWeaponAnimation(FireAnim);
 }
 
 void AShooterWeapon::Reload()

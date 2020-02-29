@@ -34,7 +34,7 @@ AShooterCharacter::AShooterCharacter()
 	Mesh1PComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh"));
 	Mesh1PComp->SetupAttachment(CameraComp);
 	Mesh1PComp->CastShadow = false;
-	Mesh1PComp->RelativeRotation = FRotator(2.0f, -15.0f, 5.0f);
+	Mesh1PComp->RelativeRotation = FRotator(0.0f, 0.0f, -90.0f);
 	Mesh1PComp->RelativeLocation = FVector(0, 0, -160.0f);
 
 	//// Create a gun mesh component
@@ -48,9 +48,14 @@ AShooterCharacter::AShooterCharacter()
 
 	ZoomedFOV = 65.0f;
 	ZoomedInterpSpeed = 20.0f;
-	WeaponAttachSocketName = "WeaponSocket";
+	WeaponAttachSocketName = "WeaponPoint";
 
 	HealthComp = CreateDefaultSubobject<UShooterHealthComponent>(TEXT("HealthComp"));
+
+	bIsTargeting = false;
+	bWantsToRun = false;
+	bWantsToFire = false;
+	bWantsToRunToggled = false;
 }
 
 // Called when the game starts or when spawned
@@ -79,7 +84,7 @@ void AShooterCharacter::BeginPlay()
 		CurrentWeapon = GetWorld()->SpawnActor<AShooterWeapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 		if (CurrentWeapon)
 		{
-			CurrentWeapon->SetOwner(this);
+			CurrentWeapon->SetOwningPawn(this);
 			CurrentWeapon->AttachToComponent(Mesh1PComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
 			CurrentWeapon->OnWeaponFired.AddDynamic(this, &AShooterCharacter::HandleOnWeaponFired);
 		}
@@ -136,18 +141,63 @@ void AShooterCharacter::EndZoom()
 
 void AShooterCharacter::BeginFiring()
 {
-	if (CurrentWeapon)
+	if (!bWantsToFire)
 	{
-		CurrentWeapon->BeginFiring();
+		bWantsToFire = true;
+		if (CurrentWeapon)
+		{
+			//AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
+			//if (MyPC && MyPC->IsGameInputAllowed())
+			//{
+			if (IsRunning())
+			{
+				SetRunning(false, false);
+			}
+			//	StartWeaponFire();
+			//}
+
+			CurrentWeapon->BeginFiring();
+		}
 	}
 }
 
 void AShooterCharacter::StopFiring()
 {
-	if (CurrentWeapon)
+	if (bWantsToFire)
 	{
-		CurrentWeapon->StopFiring();
+		bWantsToFire = false;
+		if (CurrentWeapon)
+		{
+			CurrentWeapon->StopFiring();
+		}
 	}
+}
+
+bool AShooterCharacter::IsFiring() const
+{
+	return bWantsToFire;
+}
+
+AShooterWeapon * AShooterCharacter::GetWeapon() const
+{
+	return CurrentWeapon;
+}
+
+bool AShooterCharacter::IsRunning() const
+{
+	if (!GetCharacterMovement())
+	{
+		return false;
+	}
+
+	return false;
+
+	//return (bWantsToRun || bWantsToRunToggled) && !GetVelocity().IsZero() && (GetVelocity().GetSafeNormal2D() | GetActorForwardVector()) > -0.1;
+}
+
+bool AShooterCharacter::IsTargeting() const
+{
+	return bIsTargeting;
 }
 
 void AShooterCharacter::Reload()
@@ -176,19 +226,24 @@ void AShooterCharacter::OnHealthChanged(UShooterHealthComponent* OwningHealthCom
 
 void AShooterCharacter::HandleOnWeaponFired(AShooterWeapon * WeaponFired)
 {
-	// Get the animation instance on our first person character mesh and play the Weapon Fired Montage
-	UAnimInstance* AnimInstance = (Mesh1PComp) ? Mesh1PComp->GetAnimInstance() : nullptr;
-	if (AnimInstance && WeaponFiredMontage)
-	{
-		// Play our weapon fired montage
-		AnimInstance->Montage_Play(WeaponFiredMontage);
-	}
+	//// Get the animation instance on our first person character mesh and play the Weapon Fired Montage
+	//UAnimInstance* AnimInstance = (Mesh1PComp) ? Mesh1PComp->GetAnimInstance() : nullptr;
+	//if (AnimInstance && WeaponFiredMontage)
+	//{
+	//	// Play our weapon fired montage
+	//	AnimInstance->Montage_Play(WeaponFiredMontage);
+	//}
 }
 
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	//if (bWantsToRunToggled && !IsRunning())
+	//{
+	//	SetRunning(false, false);
+	//}
 
 	//float TargetFOV = bWantsToZoom ? ZoomedFOV : DefaultFOV;
 	//
@@ -200,6 +255,7 @@ void AShooterCharacter::Tick(float DeltaTime)
 // Called to bind functionality to input
 void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
+	check(PlayerInputComponent);
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AShooterCharacter::MoveForward);
@@ -214,13 +270,120 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AShooterCharacter::StartJump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AShooterCharacter::StopJump);
 
-	PlayerInputComponent->BindAction("Zoom", IE_Pressed, this, &AShooterCharacter::BeginZoom);
-	PlayerInputComponent->BindAction("Zoom", IE_Released, this, &AShooterCharacter::EndZoom);
+	//PlayerInputComponent->BindAction("Zoom", IE_Pressed, this, &AShooterCharacter::BeginZoom);
+	//PlayerInputComponent->BindAction("Zoom", IE_Released, this, &AShooterCharacter::EndZoom);
 
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AShooterCharacter::BeginFiring);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AShooterCharacter::StopFiring);
 
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AShooterCharacter::Reload);
+
+	PlayerInputComponent->BindAction("Targeting", IE_Pressed, this, &AShooterCharacter::OnStartTargeting);
+	PlayerInputComponent->BindAction("Targeting", IE_Released, this, &AShooterCharacter::OnStopTargeting);
+}
+
+void AShooterCharacter::OnStartTargeting()
+{
+	//AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
+	//if (MyPC && MyPC->IsGameInputAllowed())
+	//{
+		if (IsRunning())
+		{
+			SetRunning(false, false);
+		}
+		SetTargeting(true);
+	//}
+}
+
+void AShooterCharacter::OnStopTargeting()
+{
+	SetTargeting(false);
+}
+
+void AShooterCharacter::SetTargeting(bool bNewTargeting)
+{
+	bIsTargeting = bNewTargeting;
+
+	//if (TargetingSound)
+	//{
+	//	UGameplayStatics::SpawnSoundAttached(TargetingSound, GetRootComponent());
+	//}
+
+	if (Role < ROLE_Authority)
+	{
+		//ServerSetTargeting(bNewTargeting);
+	}
+}
+
+void AShooterCharacter::SetRunning(bool bNewRunning, bool bToggle)
+{
+	bWantsToRun = bNewRunning;
+	bWantsToRunToggled = bNewRunning && bToggle;
+
+	if (Role < ROLE_Authority)
+	{
+		//ServerSetRunning(bNewRunning, bToggle);
+	}
+}
+
+void AShooterCharacter::OnStartRunning()
+{
+	//AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
+	//if (MyPC && MyPC->IsGameInputAllowed())
+	//{
+		if (IsTargeting())
+		{
+			SetTargeting(false);
+		}
+		StopFiring();
+		SetRunning(true, false);
+	//}
+}
+
+void AShooterCharacter::OnStartRunningToggle()
+{
+	//AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
+	//if (MyPC && MyPC->IsGameInputAllowed())
+	//{
+		if (IsTargeting())
+		{
+			SetTargeting(false);
+		}
+		StopFiring();
+		SetRunning(true, true);
+	//}
+}
+
+void AShooterCharacter::OnStopRunning()
+{
+	SetRunning(false, false);
+}
+
+float AShooterCharacter::PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
+{
+	USkeletalMeshComponent* UseMesh = GetPawnMesh();
+	if (AnimMontage && UseMesh && UseMesh->AnimScriptInstance)
+	{
+		return UseMesh->AnimScriptInstance->Montage_Play(AnimMontage, InPlayRate);
+	}
+
+	return 0.0f;
+}
+
+void AShooterCharacter::StopAnimMontage(class UAnimMontage* AnimMontage)
+{
+	USkeletalMeshComponent* UseMesh = GetPawnMesh();
+	if (AnimMontage && UseMesh && UseMesh->AnimScriptInstance &&
+		UseMesh->AnimScriptInstance->Montage_IsPlaying(AnimMontage))
+	{
+		UseMesh->AnimScriptInstance->Montage_Stop(AnimMontage->BlendOut.GetBlendTime(), AnimMontage);
+	}
+}
+
+USkeletalMeshComponent* AShooterCharacter::GetPawnMesh() const
+{
+	return Mesh1PComp;
+	//return IsFirstPerson() ? Mesh1P : GetMesh();
 }
 
 FVector AShooterCharacter::GetPawnViewLocation() const

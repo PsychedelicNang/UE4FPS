@@ -9,6 +9,8 @@
 class USkeletalMeshComponent;
 class UDamageType;
 class UParticleSystem;
+class UAnimMontage;
+
 
 // Delegate for when a weapon is fired
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponFiredSignature, AShooterWeapon*, WeaponFired);
@@ -26,7 +28,21 @@ public:
 		FVector_NetQuantize TraceTo;
 };
 
-UCLASS()
+USTRUCT()
+struct FWeaponAnim
+{
+	GENERATED_USTRUCT_BODY()
+
+	/** animation played on pawn (1st person view) */
+	UPROPERTY(EditDefaultsOnly, Category = Animation)
+	UAnimMontage* Pawn1P;
+
+	/** animation played on pawn (3rd person view) */
+	UPROPERTY(EditDefaultsOnly, Category = Animation)
+	UAnimMontage* Pawn3P;
+};
+
+UCLASS(Abstract, Blueprintable)
 class FPSGAME_API AShooterWeapon : public AActor
 {
 	GENERATED_BODY()
@@ -93,6 +109,9 @@ protected:
 		// Bullet spread in degrees
 		float BulletSpread;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+		FWeaponAnim FireAnim;
+
 protected:
 	void PlayFireEffects(FVector TraceEnd);
 
@@ -103,12 +122,22 @@ protected:
 
 	// Server means it will push the request from client to server. Reliable means it WILL eventually happen. WithValidation is required when using Server
 	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerFire();
+	void ServerFire();
 
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
 		void OnRep_HitScanTrace();
+
+	/** play weapon animations */
+	float PlayWeaponAnimation(const FWeaponAnim& Animation);
+
+	/** stop playing weapon animations */
+	void StopWeaponAnimation(const FWeaponAnim& Animation);
+
+	/** pawn owner */
+	UPROPERTY(Transient)
+	class AShooterCharacter* MyPawn;
 
 public:
 	virtual void BeginFiring();
@@ -117,4 +146,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 		FOnWeaponFiredSignature OnWeaponFired;
+
+	/** set the weapon's owning pawn */
+	void SetOwningPawn(AShooterCharacter* AShooterCharacter);
 };

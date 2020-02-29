@@ -6,19 +6,24 @@
 #include "GameFramework/Character.h"
 #include "ShooterCharacter.generated.h"
 
-class UCameraComponent;
-class USpringArmComponent;
-class AShooterWeapon;
-class UShooterHealthComponent;
-class UAnimMontage;
-
-UCLASS()
+UCLASS(Abstract)
 class FPSGAME_API AShooterCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
+
+
+	/** get mesh component */
+	USkeletalMeshComponent* GetPawnMesh() const;
+
 public:
 	AShooterCharacter();
+
+	/** play anim montage */
+	virtual float PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None) override;
+
+	/** stop playing montage */
+	virtual void StopAnimMontage(class UAnimMontage* AnimMontage) override;
 
 protected:
 
@@ -32,13 +37,13 @@ protected:
 
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
-		UCameraComponent* CameraComp;
+	class UCameraComponent* CameraComp;
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	//	USpringArmComponent* SpringArmComp;
+	//class	USpringArmComponent* SpringArmComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		UShooterHealthComponent* HealthComp;
+	class UShooterHealthComponent* HealthComp;
 
 	bool bWantsToZoom;
 
@@ -55,16 +60,13 @@ protected:
 		float ZoomedInterpSpeed;
 
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		AShooterWeapon* CurrentWeapon;
+	class AShooterWeapon* CurrentWeapon;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
-		TSubclassOf<AShooterWeapon> StarterWeaponClass;
+		TSubclassOf<class AShooterWeapon> StarterWeaponClass;
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
 		FName WeaponAttachSocketName;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Player")
-		UAnimMontage* WeaponFiredMontage;
 
 protected:
 	// Called when the game starts or when spawned
@@ -90,12 +92,38 @@ protected:
 
 	void Reload();
 
+	/** [server + local] change running state */
+	void SetRunning(bool bNewRunning, bool bToggle);
+
+	/** player pressed run action */
+	void OnStartRunning();
+
+	/** player pressed toggled run action */
+	void OnStartRunningToggle();
+
+	/** player released run action */
+	void OnStopRunning();
+
+	///** [server + local] change targeting state */
+	void SetTargeting(bool bNewTargeting);
+
+	/** player pressed targeting action */
+	void OnStartTargeting();
+
+	/** player released targeting action */
+	void OnStopTargeting();
+
 	UFUNCTION()
-		void OnHealthChanged(UShooterHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+		void OnHealthChanged(class UShooterHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
 	/*Responds to a weapon being fired from this character*/
 	UFUNCTION()
-		void HandleOnWeaponFired(AShooterWeapon* WeaponFired);
+		void HandleOnWeaponFired(class AShooterWeapon* WeaponFired);
+
+	bool bWantsToRun;
+	bool bWantsToRunToggled;
+	bool bIsTargeting;
+	bool bWantsToFire;
 
 public:
 	// Called every frame
@@ -111,4 +139,19 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Player")
 		void StopFiring();
+
+	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
+	class AShooterWeapon* GetWeapon() const;
+
+	/** get running state */
+	UFUNCTION(BlueprintCallable, Category = Pawn)
+	bool IsRunning() const;
+
+	/** get targeting state */
+	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
+	bool IsTargeting() const;
+
+	/** get firing state */
+	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
+		bool IsFiring() const;
 };
