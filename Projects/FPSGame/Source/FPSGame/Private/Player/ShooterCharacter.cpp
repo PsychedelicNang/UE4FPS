@@ -50,7 +50,6 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 
 	ZoomedFOV = 65.0f;
 	ZoomedInterpSpeed = 20.0f;
-	WeaponAttachSocketName = "WeaponPoint";
 
 	HealthComp = CreateDefaultSubobject<UShooterHealthComponent>(TEXT("HealthComp"));
 
@@ -75,25 +74,25 @@ void AShooterCharacter::BeginPlay()
 		HealthComp->OnHealthChanged.AddDynamic(this, &AShooterCharacter::OnHealthChanged);
 	}
 
-	if (Role == ROLE_Authority)
-	{
-		// Spawn a default weapon
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	//if (Role == ROLE_Authority)
+	//{
+	//	// Spawn a default weapon
+	//	FActorSpawnParameters SpawnParams;
+	//	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		if (!StarterWeaponClass)
-		{
-			return;
-		}
+	//	if (!StarterWeaponClass)
+	//	{
+	//		return;
+	//	}
 
-		CurrentWeapon = GetWorld()->SpawnActor<AShooterWeapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-		if (CurrentWeapon)
-		{
-			CurrentWeapon->SetOwningPawn(this);
-			CurrentWeapon->AttachToComponent(Mesh1PComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
-			CurrentWeapon->OnWeaponFired.AddDynamic(this, &AShooterCharacter::HandleOnWeaponFired);
-		}
-	}
+	//	CurrentWeapon = GetWorld()->SpawnActor<AShooterWeapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+	//	if (CurrentWeapon)
+	//	{
+	//		CurrentWeapon->SetOwningPawn(this);
+	//		CurrentWeapon->AttachToComponent(Mesh1PComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+	//		CurrentWeapon->OnWeaponFired.AddDynamic(this, &AShooterCharacter::HandleOnWeaponFired);
+	//	}
+	//}
 }
 
 void AShooterCharacter::MoveForward(float Value)
@@ -135,14 +134,6 @@ void AShooterCharacter::EndZoom()
 {
 	bWantsToZoom = false;
 }
-
-//void AShooterCharacter::Fire()
-//{
-//	if (CurrentWeapon)
-//	{
-//		//CurrentWeapon->Fire();
-//	}
-//}
 
 void AShooterCharacter::BeginFiring()
 {
@@ -240,6 +231,155 @@ void AShooterCharacter::HandleOnWeaponFired(AShooterWeapon * WeaponFired)
 	//}
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Inventory
+
+void AShooterCharacter::SpawnDefaultInventory()
+{
+	if (Role < ROLE_Authority)
+	{
+		return;
+	}
+
+	int32 NumWeaponClasses = DefaultInventoryClasses.Num();
+	for (int32 i = 0; i < NumWeaponClasses; i++)
+	{
+		if (DefaultInventoryClasses[i])
+		{
+			FActorSpawnParameters SpawnInfo;
+			SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			AShooterWeapon* NewWeapon = GetWorld()->SpawnActor<AShooterWeapon>(DefaultInventoryClasses[i], SpawnInfo);
+			AddWeapon(NewWeapon);
+		}
+	}
+
+	// equip first weapon in inventory
+	if (Inventory.Num() > 0)
+	{
+		EquipWeapon(Inventory[0]);
+	}
+
+
+	//if (Role == ROLE_Authority)
+	//{
+	//	// Spawn a default weapon
+	//	FActorSpawnParameters SpawnParams;
+	//	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	//	if (!StarterWeaponClass)
+	//	{
+	//		return;
+	//	}
+
+	//	CurrentWeapon = GetWorld()->SpawnActor<AShooterWeapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+	//	if (CurrentWeapon)
+	//	{
+	//		CurrentWeapon->SetOwningPawn(this);
+	//		CurrentWeapon->AttachToComponent(Mesh1PComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+	//		CurrentWeapon->OnWeaponFired.AddDynamic(this, &AShooterCharacter::HandleOnWeaponFired);
+	//	}
+	//}
+}
+
+void AShooterCharacter::DestroyInventory()
+{
+	if (Role < ROLE_Authority)
+	{
+		return;
+	}
+
+	// remove all weapons from inventory and destroy them
+	for (int32 i = Inventory.Num() - 1; i >= 0; i--)
+	{
+		AShooterWeapon* Weapon = Inventory[i];
+		if (Weapon)
+		{
+			RemoveWeapon(Weapon);
+			Weapon->Destroy();
+		}
+	}
+}
+
+void AShooterCharacter::AddWeapon(AShooterWeapon* Weapon)
+{
+	if (Weapon && Role == ROLE_Authority)
+	{
+//		Weapon->OnEnterInventory(this);
+		Inventory.AddUnique(Weapon);
+	}
+}
+
+void AShooterCharacter::RemoveWeapon(AShooterWeapon* Weapon)
+{
+	if (Weapon && Role == ROLE_Authority)
+	{
+//		Weapon->OnLeaveInventory();
+		Inventory.RemoveSingle(Weapon);
+	}
+}
+
+AShooterWeapon* AShooterCharacter::FindWeapon(TSubclassOf<AShooterWeapon> WeaponClass)
+{
+	for (int32 i = 0; i < Inventory.Num(); i++)
+	{
+		if (Inventory[i] && Inventory[i]->IsA(WeaponClass))
+		{
+			return Inventory[i];
+		}
+	}
+
+	return nullptr;
+}
+
+void AShooterCharacter::EquipWeapon(AShooterWeapon* Weapon)
+{
+	if (Weapon)
+	{
+		if (Role == ROLE_Authority)
+		{
+			SetCurrentWeapon(Weapon, CurrentWeapon);
+		}
+		else
+		{
+//			ServerEquipWeapon(Weapon);
+		}
+	}
+}
+
+void AShooterCharacter::SetCurrentWeapon(AShooterWeapon* NewWeapon, AShooterWeapon* LastWeapon)
+{
+	AShooterWeapon* LocalLastWeapon = nullptr;
+
+	if (LastWeapon != nullptr)
+	{
+		LocalLastWeapon = LastWeapon;
+	}
+	else if (NewWeapon != CurrentWeapon)
+	{
+		LocalLastWeapon = CurrentWeapon;
+	}
+
+
+
+	// unequip previous
+	if (LocalLastWeapon)
+	{
+//		LocalLastWeapon->OnUnEquip();
+	}
+
+	CurrentWeapon = NewWeapon;
+
+	CurrentWeapon->AttachToComponent(Mesh1PComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachPoint);
+
+	// equip new one
+	if (NewWeapon)
+	{
+		NewWeapon->SetOwningPawn(this);	// Make sure weapon's MyPawn is pointing back to us. During replication, we can't guarantee APawn::CurrentWeapon will rep after AWeapon::MyPawn!
+
+//		NewWeapon->OnEquip(LastWeapon);
+	}
+}
+
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
@@ -275,8 +415,6 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AShooterCharacter::StartJump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AShooterCharacter::StopJump);
 
-	//PlayerInputComponent->BindAction("Zoom", IE_Pressed, this, &AShooterCharacter::BeginZoom);
-	//PlayerInputComponent->BindAction("Zoom", IE_Released, this, &AShooterCharacter::EndZoom);
 
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AShooterCharacter::BeginFiring);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AShooterCharacter::StopFiring);
@@ -387,6 +525,13 @@ void AShooterCharacter::StopAnimMontage(class UAnimMontage* AnimMontage)
 	{
 		UseMesh->AnimScriptInstance->Montage_Stop(AnimMontage->BlendOut.GetBlendTime(), AnimMontage);
 	}
+}
+
+void AShooterCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	
+	SpawnDefaultInventory();
 }
 
 USkeletalMeshComponent* AShooterCharacter::GetPawnMesh() const

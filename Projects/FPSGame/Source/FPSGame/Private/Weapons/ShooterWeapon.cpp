@@ -22,7 +22,7 @@ FAutoConsoleVariableRef CVARDebugWeaponDrawing(
 	ECVF_Cheat);
 
 // Sets default values
-AShooterWeapon::AShooterWeapon()
+AShooterWeapon::AShooterWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	MeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MeshComp"));
 	RootComponent = MeshComp;
@@ -30,23 +30,18 @@ AShooterWeapon::AShooterWeapon()
 	MuzzleSocketName = "MuzzleFlashSocket";
 	TracerTargetName = "BeamEnd";
 
-	BaseDamage = 20.0f;
-	RateOfFire = 600;
-	MagazineCapacity = 30;
+	MagazineCapacity = WeaponConfig.AmmoPerClip;
 
 	SetReplicates(true);
 
 	NetUpdateFrequency = 66.0f;
 	MinNetUpdateFrequency = 33.0f;
-
-	BulletSpread = 2.0f;
 }
 
 void AShooterWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
-	TimeBetweenShots = 60 / RateOfFire;
 	MagazineSize = MagazineCapacity;
 
 	MyPawn = Cast<AShooterCharacter>(GetOwner());
@@ -103,93 +98,21 @@ void AShooterWeapon::StopWeaponAnimation(const FWeaponAnim& Animation)
 
 void AShooterWeapon::Fire()
 {
-	// Trace the world from pawn eyes to crosshair location
-
-	if (Role < ROLE_Authority)
+	if (MagazineSize > 0 || WeaponConfig.bInfiniteClip)
 	{
-		ServerFire();
-	}
-
-	AActor* MyOwner = GetOwner();
-	if (MyOwner/* && MagazineSize > 0*/)
-	{
-		//FVector EyeLocation;
-		//FRotator EyeRotation;
-		//MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
-		//
-		//FVector ShotDirection = EyeRotation.Vector();
-
-		//// Bullet spread
-		//float HalfRad = FMath::DegreesToRadians(BulletSpread);
-		//ShotDirection = FMath::VRandCone(ShotDirection, HalfRad, HalfRad);
-
-		FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
-
-		FVector ShotDirection = MeshComp->GetSocketRotation(MuzzleSocketName).Vector();
-
-		FVector TraceEnd = MuzzleLocation + (ShotDirection * 10000);
-
-		FCollisionQueryParams QueryParams;
-		QueryParams.AddIgnoredActor(MyOwner);
-		QueryParams.AddIgnoredActor(this);
-		QueryParams.bTraceComplex = true; // Traces against every triangle of the mesh we hit
-		QueryParams.bReturnPhysicalMaterial = true;
-
-		// Particle "Target" parameter
-		FVector TracerEndPoint = TraceEnd;
-
-		EPhysicalSurface SurfaceType = SurfaceType_Default;
-		
-		FHitResult Hit;
-		bool bBlockingHit = GetWorld()->LineTraceSingleByChannel(Hit, MuzzleLocation, TraceEnd, COLLISION_WEAPON, QueryParams);
-		if (bBlockingHit)
-		{
-			// We hit something! Deal damage...
-
-			AActor* HitActor = Hit.GetActor();
-
-			SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
-
-			float ActualDamage = BaseDamage;
-			if (SurfaceType == SURFACE_FLESHVULNERABLE)
-			{
-				ActualDamage *= 4.0f;
-			}
-
-			UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), MyOwner, DamageType);
-
-			PlayImpactEffects(SurfaceType, Hit.ImpactPoint);
-
-			TracerEndPoint = Hit.ImpactPoint;
-		}
-
-		//if (DebugWeaponDrawing > 0)
-		//{
-			DrawDebugLine(GetWorld(), MuzzleLocation, TraceEnd, FColor::Green, false, 1.0f, 0, 1.0f);
-		//}
-
-		PlayFireEffects(TracerEndPoint);
-
-		if (Role == ROLE_Authority)
-		{
-			HitScanTrace.TraceTo = TracerEndPoint;
-			HitScanTrace.SurfaceType = SurfaceType;
-		}
-
-		LastFiredTime = GetWorld()->TimeSeconds;
-
+		FireWeapon();
 		MagazineSize--;
-
-		PlayWeaponAnimation(FireAnim);
-
-		OnWeaponFired.Broadcast(this);
+	}
+	else
+	{
+		StopFiring();
 	}
 }
 
 void AShooterWeapon::BeginFiring()
 {
-	float FirstDelay = FMath::Max(LastFiredTime + TimeBetweenShots - GetWorld()->TimeSeconds, 0.0f);
-	GetWorldTimerManager().SetTimer(TimerHandle_TimeBetweenShots, this, &AShooterWeapon::Fire, TimeBetweenShots, true, FirstDelay);
+	float FirstDelay = FMath::Max(LastFiredTime + WeaponConfig.TimeBetweenShots - GetWorld()->TimeSeconds, 0.0f);
+	GetWorldTimerManager().SetTimer(TimerHandle_TimeBetweenShots, this, &AShooterWeapon::Fire, WeaponConfig.TimeBetweenShots, true, FirstDelay);
 }
 
 void AShooterWeapon::StopFiring()

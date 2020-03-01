@@ -12,9 +12,6 @@ class UParticleSystem;
 class UAnimMontage;
 
 
-// Delegate for when a weapon is fired
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponFiredSignature, AShooterWeapon*, WeaponFired);
-
 // Contains information of a single hitscan weapon linetrace
 USTRUCT()
 struct FHitScanTrace {
@@ -42,15 +39,61 @@ struct FWeaponAnim
 	UAnimMontage* Pawn3P;
 };
 
+USTRUCT()
+struct FWeaponData
+{
+	GENERATED_USTRUCT_BODY()
+
+	/** inifite ammo for reloads */
+	UPROPERTY(EditDefaultsOnly, Category = Ammo)
+	bool bInfiniteAmmo;
+
+	/** infinite ammo in clip, no reload required */
+	UPROPERTY(EditDefaultsOnly, Category = Ammo)
+		bool bInfiniteClip;
+
+	/** max ammo */
+	UPROPERTY(EditDefaultsOnly, Category = Ammo)
+		int32 MaxAmmo;
+
+	/** clip size */
+	UPROPERTY(EditDefaultsOnly, Category = Ammo)
+		int32 AmmoPerClip;
+
+	/** initial clips */
+	UPROPERTY(EditDefaultsOnly, Category = Ammo)
+		int32 InitialClips;
+
+	/** time between two consecutive shots (TimeBetweenShots = 60 / RPM) */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		float TimeBetweenShots;
+
+	/** failsafe reload duration if weapon doesn't have any animation for it */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		float NoAnimReloadDuration;
+
+	/** defaults */
+	FWeaponData()
+	{
+		bInfiniteAmmo = false;
+		bInfiniteClip = false;
+		MaxAmmo = 240;
+		AmmoPerClip = 30;
+		InitialClips = 8;
+		TimeBetweenShots = 0.2f;
+		NoAnimReloadDuration = 1.0f;
+	}
+};
+
 UCLASS(Abstract, Blueprintable)
 class FPSGAME_API AShooterWeapon : public AActor
 {
-	GENERATED_BODY()
+	GENERATED_UCLASS_BODY()
 	
-public:	
-	// Sets default values for this actor's properties
-	AShooterWeapon();
-
+//public:	
+//	// Sets default values for this actor's properties
+//	AShooterWeapon();
+//
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -83,18 +126,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 		TSubclassOf<UCameraShake> FireCamShake;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-		float BaseDamage;
-
 	FTimerHandle TimerHandle_TimeBetweenShots;
 
 	float LastFiredTime;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-		// RPM - Rounds Per Minute
-		float RateOfFire;
-
-	float TimeBetweenShots;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 		int32 MagazineCapacity;
@@ -112,6 +146,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 		FWeaponAnim FireAnim;
 
+	/** weapon data */
+	UPROPERTY(EditDefaultsOnly, Category = Config)
+		FWeaponData WeaponConfig;
+
 protected:
 	void PlayFireEffects(FVector TraceEnd);
 
@@ -119,6 +157,8 @@ protected:
 
 	//UFUNCTION(BlueprintCallable, Category = "Weapon")
 	virtual void Fire();
+
+	virtual void FireWeapon() PURE_VIRTUAL(AShooter::FireWeapon, );
 
 	// Server means it will push the request from client to server. Reliable means it WILL eventually happen. WithValidation is required when using Server
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -143,9 +183,6 @@ public:
 	virtual void BeginFiring();
 	virtual void StopFiring();
 	virtual void Reload();
-
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-		FOnWeaponFiredSignature OnWeaponFired;
 
 	/** set the weapon's owning pawn */
 	void SetOwningPawn(AShooterCharacter* AShooterCharacter);

@@ -12,11 +12,14 @@ class FPSGAME_API AShooterCharacter : public ACharacter
 	/*Used GENERATED_UCLASS_BODY() if using a member initializer list*/
 	GENERATED_UCLASS_BODY()
 
-	/*Used GENERATED_BODY() if using a default constructor*/
-//	GENERATED_BODY()
-//
-//public:
-//	AShooterCharacter();
+		/*Used GENERATED_BODY() if using a default constructor*/
+	//	GENERATED_BODY()
+	//
+	//public:
+	//	AShooterCharacter();
+
+	/** spawn inventory, setup initial variables */
+	virtual void PostInitializeComponents() override;
 
 
 	/** get mesh component */
@@ -35,16 +38,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
 		USkeletalMeshComponent* Mesh1PComp;
 
-	///** Gun mesh: 1st person view (seen only by self) */
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
-	//	USkeletalMeshComponent* GunMeshComp;
-
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	class UCameraComponent* CameraComp;
-
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	//class	USpringArmComponent* SpringArmComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UShooterHealthComponent* HealthComp;
@@ -63,22 +59,34 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.1, ClampMax = 100.0f))
 		float ZoomedInterpSpeed;
 
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Inventory)
 	class AShooterWeapon* CurrentWeapon;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Player")
-		TSubclassOf<class AShooterWeapon> StarterWeaponClass;
-
-	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
-		FName WeaponAttachSocketName;
-
 	/** modifier for max movement speed */
-	UPROPERTY(EditDefaultsOnly, Category = Inventory)
+	UPROPERTY(EditDefaultsOnly, Category = Pawn)
 		float TargetingSpeedModifier;
 
 	/** modifier for max movement speed */
 	UPROPERTY(EditDefaultsOnly, Category = Pawn)
 		float RunningSpeedModifier;
+
+	/** socket or bone name for attaching weapon mesh */
+	UPROPERTY(EditDefaultsOnly, Category = Inventory)
+		FName WeaponAttachPoint;
+
+	/** default inventory list */
+	UPROPERTY(EditDefaultsOnly, Category = Inventory)
+		TArray<TSubclassOf<class AShooterWeapon> > DefaultInventoryClasses;
+
+	/** weapons in inventory */
+	UPROPERTY(Transient, Replicated)
+		TArray<class AShooterWeapon*> Inventory;
+
+
+	bool bWantsToRun;
+	bool bWantsToRunToggled;
+	bool bIsTargeting;
+	bool bWantsToFire;
 
 protected:
 	// Called when the game starts or when spawned
@@ -99,8 +107,6 @@ protected:
 	void BeginZoom();
 
 	void EndZoom();
-
-	//void Fire();
 
 	void Reload();
 
@@ -132,10 +138,46 @@ protected:
 	UFUNCTION()
 		void HandleOnWeaponFired(class AShooterWeapon* WeaponFired);
 
-	bool bWantsToRun;
-	bool bWantsToRunToggled;
-	bool bIsTargeting;
-	bool bWantsToFire;
+	/** [server] spawns default inventory */
+	void SpawnDefaultInventory();
+
+	/** [server] remove all weapons from inventory and destroy them */
+	void DestroyInventory();
+
+
+	/** updates current weapon */
+	void SetCurrentWeapon(class AShooterWeapon* NewWeapon, class AShooterWeapon* LastWeapon = nullptr);
+
+	//////////////////////////////////////////////////////////////////////////
+	// Inventory
+
+	/**
+	* [server] add weapon to inventory
+	*
+	* @param Weapon	Weapon to add.
+	*/
+	void AddWeapon(class AShooterWeapon* Weapon);
+
+	/**
+	* [server] remove weapon from inventory
+	*
+	* @param Weapon	Weapon to remove.
+	*/
+	void RemoveWeapon(class AShooterWeapon* Weapon);
+
+	/**
+	* Find in inventory
+	*
+	* @param WeaponClass	Class of weapon to find.
+	*/
+	class AShooterWeapon* FindWeapon(TSubclassOf<class AShooterWeapon> WeaponClass);
+
+	/**
+	* [server + local] equips weapon from inventory
+	*
+	* @param Weapon	Weapon to equip
+	*/
+	void EquipWeapon(class AShooterWeapon* Weapon);
 
 public:
 	// Called every frame
