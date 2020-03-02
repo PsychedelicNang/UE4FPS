@@ -11,6 +11,16 @@ class UDamageType;
 class UParticleSystem;
 class UAnimMontage;
 
+namespace EWeaponState
+{
+	enum Type
+	{
+		Idle,
+		Firing,
+		Reloading,
+		Equipping,
+	};
+}
 
 // Contains information of a single hitscan weapon linetrace
 USTRUCT()
@@ -150,6 +160,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Config)
 		FWeaponData WeaponConfig;
 
+	/** current weapon state */
+	EWeaponState::Type CurrentState;
+
 protected:
 	void PlayFireEffects(FVector TraceEnd);
 
@@ -179,6 +192,28 @@ protected:
 	UPROPERTY(Transient)
 	class AShooterCharacter* MyPawn;
 
+	///** [server] weapon was added to pawn's inventory */
+	//virtual void OnEnterInventory(AShooterCharacter* NewOwner);
+
+	///** [server] weapon was removed from pawn's inventory */
+	//virtual void OnLeaveInventory();
+
+	//////////////////////////////////////////////////////////////////////////
+// Inventory
+
+/** attaches weapon mesh to pawn's mesh */
+	void AttachMeshToPawn();
+
+	/** detaches weapon mesh from pawn */
+	void DetachMeshFromPawn();
+
+	bool bPendingEquip;
+	bool bIsEquipped;
+
+	/** get weapon mesh (needs pawn owner to determine variant) */
+	USkeletalMeshComponent* GetWeaponMesh() const;
+
+
 public:
 	virtual void BeginFiring();
 	virtual void StopFiring();
@@ -186,4 +221,23 @@ public:
 
 	/** set the weapon's owning pawn */
 	void SetOwningPawn(AShooterCharacter* AShooterCharacter);
+
+	EWeaponState::Type GetCurrentState() const;
+
+	/** weapon is being equipped by owner pawn */
+	virtual void OnEquip(const AShooterWeapon* LastWeapon);
+
+	/** weapon is now equipped by owner pawn */
+	virtual void OnEquipFinished();
+
+	/** weapon is holstered by owner pawn */
+	virtual void OnUnEquip();
+
+	/** [server] weapon was added to pawn's inventory */
+	virtual void OnEnterInventory(AShooterCharacter* NewOwner);
+
+	/** [server] weapon was removed from pawn's inventory */
+	virtual void OnLeaveInventory();
+
+	bool IsAttachedToPawn() const;
 };

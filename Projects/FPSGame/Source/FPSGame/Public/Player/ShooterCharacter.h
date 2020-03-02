@@ -179,6 +179,13 @@ protected:
 	*/
 	void EquipWeapon(class AShooterWeapon* Weapon);
 
+	/** player pressed next weapon action */
+	void OnNextWeapon();
+
+	/** player pressed prev weapon action */
+	void OnPrevWeapon();
+
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -216,4 +223,14 @@ public:
 	/** get the modifier value for running speed */
 	UFUNCTION(BlueprintCallable, Category = Pawn)
 		float GetRunningSpeedModifier() const;
+
+	/** get weapon attach point */
+	FName GetWeaponAttachPoint() const;
+
+	/*
+* Get either first or third person mesh.
+*
+* @param	WantFirstPerson		If true returns the first peron mesh, else returns the third
+*/
+	USkeletalMeshComponent* GetSpecifcPawnMesh(bool WantFirstPerson) const;
 };

@@ -304,7 +304,7 @@ void AShooterCharacter::AddWeapon(AShooterWeapon* Weapon)
 {
 	if (Weapon && Role == ROLE_Authority)
 	{
-//		Weapon->OnEnterInventory(this);
+		Weapon->OnEnterInventory(this);
 		Inventory.AddUnique(Weapon);
 	}
 }
@@ -313,7 +313,7 @@ void AShooterCharacter::RemoveWeapon(AShooterWeapon* Weapon)
 {
 	if (Weapon && Role == ROLE_Authority)
 	{
-//		Weapon->OnLeaveInventory();
+		Weapon->OnLeaveInventory();
 		Inventory.RemoveSingle(Weapon);
 	}
 }
@@ -346,6 +346,17 @@ void AShooterCharacter::EquipWeapon(AShooterWeapon* Weapon)
 	}
 }
 
+USkeletalMeshComponent* AShooterCharacter::GetSpecifcPawnMesh(bool WantFirstPerson) const
+{
+	return Mesh1PComp;
+	//return WantFirstPerson == true ? Mesh1P : GetMesh();
+}
+
+FName AShooterCharacter::GetWeaponAttachPoint() const
+{
+	return WeaponAttachPoint;
+}
+
 void AShooterCharacter::SetCurrentWeapon(AShooterWeapon* NewWeapon, AShooterWeapon* LastWeapon)
 {
 	AShooterWeapon* LocalLastWeapon = nullptr;
@@ -359,12 +370,10 @@ void AShooterCharacter::SetCurrentWeapon(AShooterWeapon* NewWeapon, AShooterWeap
 		LocalLastWeapon = CurrentWeapon;
 	}
 
-
-
 	// unequip previous
 	if (LocalLastWeapon)
 	{
-//		LocalLastWeapon->OnUnEquip();
+		LocalLastWeapon->OnUnEquip();
 	}
 
 	CurrentWeapon = NewWeapon;
@@ -376,8 +385,36 @@ void AShooterCharacter::SetCurrentWeapon(AShooterWeapon* NewWeapon, AShooterWeap
 	{
 		NewWeapon->SetOwningPawn(this);	// Make sure weapon's MyPawn is pointing back to us. During replication, we can't guarantee APawn::CurrentWeapon will rep after AWeapon::MyPawn!
 
-//		NewWeapon->OnEquip(LastWeapon);
+		NewWeapon->OnEquip(LastWeapon);
 	}
+}
+
+void AShooterCharacter::OnNextWeapon()
+{
+	//AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
+	//if (MyPC && MyPC->IsGameInputAllowed())
+	//{
+		if (Inventory.Num() >= 2 && (CurrentWeapon == NULL || CurrentWeapon->GetCurrentState() != EWeaponState::Equipping))
+		{
+			const int32 CurrentWeaponIdx = Inventory.IndexOfByKey(CurrentWeapon);
+			AShooterWeapon* NextWeapon = Inventory[(CurrentWeaponIdx + 1) % Inventory.Num()];
+			EquipWeapon(NextWeapon);
+		}
+	//}
+}
+
+void AShooterCharacter::OnPrevWeapon()
+{
+	//AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
+	//if (MyPC && MyPC->IsGameInputAllowed())
+	//{
+		if (Inventory.Num() >= 2 && (CurrentWeapon == NULL || CurrentWeapon->GetCurrentState() != EWeaponState::Equipping))
+		{
+			const int32 CurrentWeaponIdx = Inventory.IndexOfByKey(CurrentWeapon);
+			AShooterWeapon* PrevWeapon = Inventory[(CurrentWeaponIdx - 1 + Inventory.Num()) % Inventory.Num()];
+			EquipWeapon(PrevWeapon);
+		}
+	//}
 }
 
 // Called every frame
@@ -427,6 +464,9 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Run", IE_Pressed, this, &AShooterCharacter::OnStartRunning);
 	PlayerInputComponent->BindAction("RunToggle", IE_Pressed, this, &AShooterCharacter::OnStartRunningToggle);
 	PlayerInputComponent->BindAction("Run", IE_Released, this, &AShooterCharacter::OnStopRunning);
+
+	PlayerInputComponent->BindAction("NextWeapon", IE_Pressed, this, &AShooterCharacter::OnNextWeapon);
+	PlayerInputComponent->BindAction("PrevWeapon", IE_Pressed, this, &AShooterCharacter::OnPrevWeapon);
 }
 
 void AShooterCharacter::OnStartTargeting()

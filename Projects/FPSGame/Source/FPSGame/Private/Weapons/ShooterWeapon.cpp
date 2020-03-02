@@ -54,6 +54,167 @@ void AShooterWeapon::Tick(float DeltaTime)
 
 }
 
+EWeaponState::Type AShooterWeapon::GetCurrentState() const
+{
+	return CurrentState;
+}
+
+void AShooterWeapon::OnEnterInventory(AShooterCharacter* NewOwner)
+{
+	SetOwningPawn(NewOwner);
+}
+
+void AShooterWeapon::OnLeaveInventory()
+{
+	if (Role == ROLE_Authority)
+	{
+		SetOwningPawn(NULL);
+	}
+
+	if (IsAttachedToPawn())
+	{
+		OnUnEquip();
+	}
+}
+
+bool AShooterWeapon::IsAttachedToPawn() const
+{
+	return  bIsEquipped || bPendingEquip;
+	//return bIsEquipped || bPendingEquip;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Inventory
+
+void AShooterWeapon::OnEquip(const AShooterWeapon* LastWeapon)
+{
+	AttachMeshToPawn();
+
+	bPendingEquip = true;
+	//DetermineWeaponState();
+
+	//// Only play animation if last weapon is valid
+	//if (LastWeapon)
+	//{
+	//	float Duration = PlayWeaponAnimation(EquipAnim);
+	//	if (Duration <= 0.0f)
+	//	{
+	//		// failsafe
+	//		Duration = 0.5f;
+	//	}
+	//	EquipStartedTime = GetWorld()->GetTimeSeconds();
+	//	EquipDuration = Duration;
+
+	//	GetWorldTimerManager().SetTimer(TimerHandle_OnEquipFinished, this, &AShooterWeapon::OnEquipFinished, Duration, false);
+	//}
+	//else
+	//{
+	//	OnEquipFinished();
+	//}
+	OnEquipFinished();
+
+	//if (MyPawn && MyPawn->IsLocallyControlled())
+	//{
+	//	PlayWeaponSound(EquipSound);
+	//}
+}
+
+void AShooterWeapon::OnEquipFinished()
+{
+	AttachMeshToPawn();
+
+	bIsEquipped = true;
+	bPendingEquip = false;
+
+	//// Determine the state so that the can reload checks will work
+	//DetermineWeaponState(); 
+	//
+	//if (MyPawn)
+	//{
+	//	// try to reload empty clip
+	//	if (MyPawn->IsLocallyControlled() &&
+	//		CurrentAmmoInClip <= 0 &&
+	//		CanReload())
+	//	{
+	//		StartReload();
+	//	}
+	//}
+
+
+}
+
+void AShooterWeapon::AttachMeshToPawn()
+{
+	if (MyPawn)
+	{
+		// Remove and hide both first and third person meshes
+		DetachMeshFromPawn();
+
+		// For locally controller players we attach both weapons and let the bOnlyOwnerSee, bOwnerNoSee flags deal with visibility.
+		FName AttachPoint = MyPawn->GetWeaponAttachPoint();
+
+		//UE_LOG(LogTemp, Log, TEXT("Health Changed: %s"), *AttachPoint.ToString());
+
+		if (MyPawn->IsLocallyControlled() == true)
+		{
+			USkeletalMeshComponent* PawnMesh1p = MyPawn->GetSpecifcPawnMesh(true);
+			//USkeletalMeshComponent* PawnMesh3p = MyPawn->GetSpecifcPawnMesh(false);
+			MeshComp->SetHiddenInGame(false);
+			//Mesh3P->SetHiddenInGame(false);
+			MeshComp->AttachToComponent(PawnMesh1p, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
+			//Mesh3P->AttachToComponent(PawnMesh3p, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
+		}
+		else
+		{
+			USkeletalMeshComponent* UseWeaponMesh = GetWeaponMesh();
+			USkeletalMeshComponent* UsePawnMesh = MyPawn->GetPawnMesh();
+			UseWeaponMesh->AttachToComponent(UsePawnMesh, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
+			UseWeaponMesh->SetHiddenInGame(false);
+		}
+	}
+}
+
+USkeletalMeshComponent* AShooterWeapon::GetWeaponMesh() const
+{
+	return MeshComp;
+	//return (MyPawn != NULL && MyPawn->IsFirstPerson()) ? Mesh1P : Mesh3P;
+}
+
+void AShooterWeapon::DetachMeshFromPawn()
+{
+	MeshComp->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+	MeshComp->SetHiddenInGame(true);
+
+	//Mesh3P->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+	//Mesh3P->SetHiddenInGame(true);
+}
+
+void AShooterWeapon::OnUnEquip()
+{
+	DetachMeshFromPawn();
+	bIsEquipped = false;
+	//StopFire();
+
+	//if (bPendingReload)
+	//{
+	//	StopWeaponAnimation(ReloadAnim);
+	//	bPendingReload = false;
+
+	//	GetWorldTimerManager().ClearTimer(TimerHandle_StopReload);
+	//	GetWorldTimerManager().ClearTimer(TimerHandle_ReloadWeapon);
+	//}
+
+	if (bPendingEquip)
+	{
+		//StopWeaponAnimation(EquipAnim);
+		bPendingEquip = false;
+
+		//GetWorldTimerManager().ClearTimer(TimerHandle_OnEquipFinished);
+	}
+
+	//DetermineWeaponState();
+}
+
 void AShooterWeapon::SetOwningPawn(AShooterCharacter* NewOwner)
 {
 	if (MyPawn != NewOwner)
