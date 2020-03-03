@@ -11,9 +11,9 @@ struct FProjectileWeaponData
 {
 	GENERATED_USTRUCT_BODY()
 
-	///** projectile class */
-	//UPROPERTY(EditDefaultsOnly, Category = Projectile)
-	//TSubclassOf<class AShooterProjectile> ProjectileClass;
+	/** projectile class */
+	UPROPERTY(EditDefaultsOnly, Category = Projectile)
+	TSubclassOf<class AShooterProjectile> ProjectileClass;
 
 	/** life time */
 	UPROPERTY(EditDefaultsOnly, Category = Projectile)
@@ -49,7 +49,11 @@ UCLASS()
 class FPSGAME_API AShooterWeapon_Projectile : public AShooterWeapon
 {
 	GENERATED_UCLASS_BODY()
-	
+protected:
+		/** weapon config */
+		UPROPERTY(EditDefaultsOnly, Category = Config)
+		FProjectileWeaponData ProjectileConfig;
+
 protected:
 	/** [local] weapon specific fire implementation */
 	virtual void FireWeapon() override;

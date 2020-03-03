@@ -2,6 +2,8 @@
 
 
 #include "ShooterWeapon_Projectile.h"
+#include "Weapons/ShooterProjectile.h"
+#include "Kismet/GameplayStatics.h"
 
 AShooterWeapon_Projectile::AShooterWeapon_Projectile(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -57,16 +59,18 @@ void AShooterWeapon_Projectile::FireWeapon()
 	//	}
 	//}
 
-	////ServerFireProjectile(Origin, ShootDir);
+	//ServerFireProjectile(Origin, ShootDir);
 
-	//FTransform SpawnTM(ShootDir.Rotation(), Origin);
-	//AShooterProjectile* Projectile = Cast<AShooterProjectile>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, ProjectileConfig.ProjectileClass, SpawnTM));
-	//if (Projectile)
-	//{
-	//	Projectile->Instigator = Instigator;
-	//	Projectile->SetOwner(this);
-	//	Projectile->InitVelocity(ShootDir);
+	FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
+	FVector ShotDirection = MeshComp->GetSocketRotation(MuzzleSocketName).Vector();
+	FTransform SpawnTM(ShotDirection.Rotation(), MuzzleLocation);
+	AShooterProjectile* Projectile = Cast<AShooterProjectile>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, ProjectileConfig.ProjectileClass, SpawnTM));
+	if (Projectile)
+	{
+		Projectile->Instigator = Instigator;
+		Projectile->SetOwner(this);
+		//Projectile->InitVelocity(ShotDirection);
 
-	//	UGameplayStatics::FinishSpawningActor(Projectile, SpawnTM);
-	//}
+		UGameplayStatics::FinishSpawningActor(Projectile, SpawnTM);
+	}
 }
