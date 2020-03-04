@@ -24,9 +24,13 @@ float UShooterCharacterMovement::GetMaxSpeed() const
 		{
 			MaxSpeed *= ShooterCharacterOwner->GetTargetingSpeedModifier();
 		}
-		if (ShooterCharacterOwner->IsRunning())
+		else if (ShooterCharacterOwner->IsRunning())
 		{
 			MaxSpeed *= ShooterCharacterOwner->GetRunningSpeedModifier();
+		}
+		if (ShooterCharacterOwner->IsCarryingLootBag())
+		{
+			MaxSpeed *= ShooterCharacterOwner->GetCarryingLootBagSpeedModifier();
 		}
 	}
 

@@ -1,0 +1,242 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "LootBag.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/SphereComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Player/ShooterCharacter.h"
+#include "Components/PrimitiveComponent.h"
+
+// Sets default values
+ALootBag::ALootBag()
+{
+ 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+
+	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
+	//MeshComp->SetSimulatePhysics(true);
+	//MeshComp->GetPhysicsComponent
+	//MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	RootComponent = MeshComp;
+
+	//UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(GetComponentByClass(UPrimitiveComponent::StaticClass()));
+	//PrimComp->SetMassOverrideInKg(NAME_None, 10.0f, true);
+	//SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollisionComponent"));
+	//SphereCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//SphereCollisionComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap); // We only care about collision with Pawns
+	//SphereCollisionComp->OnComponentBeginOverlap.AddDynamic(this, &ALootBag::OnBeginOverlapSphereCollisionComponent);
+	//SphereCollisionComp->OnComponentEndOverlap.AddDynamic(this, &ALootBag::OnEndOverlapSphereCollisionComponent);
+	//SphereCollisionComp->SetupAttachment(MeshComp);
+	//SphereCollisionComp->SetSphereRadius(125.0f);
+
+	DefaultMoneyStored = 50000;
+
+	CarryingSpeedModifier = 0.5f;
+}
+
+// Called when the game starts or when spawned
+void ALootBag::BeginPlay()
+{
+	Super::BeginPlay();
+
+	CurrentMoneyStored = DefaultMoneyStored;
+	CarryingSpeedModifier =  ((float)(DefaultMoneyStored % CurrentMoneyStored)) + 0.5f;
+	//UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(GetComponentByClass(UPrimitiveComponent::StaticClass()));
+	//PrimComp->SetMassOverrideInKg(NAME_None, 10.0f, true);
+}
+
+//void ALootBag::OnBeginOverlapSphereCollisionComponent(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+//{
+//	UE_LOG(LogTemp, Log, TEXT("Overlapped!"));
+//	
+//	// Only allow someone to pick us up if we're not already owned
+//	if (OtherActor && !IsAttachedToPawn())
+//	{
+//		AShooterCharacter* Player = Cast<AShooterCharacter>(OtherActor);
+//	}
+//}
+//
+//void ALootBag::OnEndOverlapSphereCollisionComponent(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex)
+//{
+//	UE_LOG(LogTemp, Log, TEXT("Stopped Overlapping!"));
+//
+//	// Stop the actor from being able to pick us up
+//	if (OtherActor)
+//	{
+//		AShooterCharacter* Player = Cast<AShooterCharacter>(OtherActor);
+//	}
+//}
+
+// Called every frame
+void ALootBag::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+}
+
+float ALootBag::GetCarryingLootBagSpeedModifier() const
+{
+	return CarryingSpeedModifier;
+}
+
+void ALootBag::DetachMeshFromPawn()
+{
+	MeshComp->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+	//MeshComp->SetHiddenInGame(true);
+
+	//Mesh3P->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+	//Mesh3P->SetHiddenInGame(true);
+}
+
+void ALootBag::OnEnterInventory(AShooterCharacter* NewOwner)
+{
+	SetOwningPawn(NewOwner);
+}
+
+void ALootBag::OnLeaveInventory()
+{
+	if (Role == ROLE_Authority)
+	{
+		SetOwningPawn(NULL);
+	}
+
+	if (IsAttachedToPawn())
+	{
+		OnUnEquip();
+	}
+}
+
+bool ALootBag::IsAttachedToPawn() const
+{
+	return  bIsEquipped || bPendingEquip;
+	//return bIsEquipped || bPendingEquip;
+}
+void ALootBag::OnUnEquip()
+{
+	DetachMeshFromPawn();
+	bIsEquipped = false;
+	//StopFire();
+
+	//if (bPendingReload)
+	//{
+	//	StopWeaponAnimation(ReloadAnim);
+	//	bPendingReload = false;
+
+	//	GetWorldTimerManager().ClearTimer(TimerHandle_StopReload);
+	//	GetWorldTimerManager().ClearTimer(TimerHandle_ReloadWeapon);
+	//}
+
+	if (bPendingEquip)
+	{
+		//StopWeaponAnimation(EquipAnim);
+		bPendingEquip = false;
+
+		//GetWorldTimerManager().ClearTimer(TimerHandle_OnEquipFinished);
+	}
+
+	//DetermineWeaponState();
+}
+
+void ALootBag::SetOwningPawn(AShooterCharacter* NewOwner)
+{
+	if (MyPawn != NewOwner)
+	{
+		Instigator = NewOwner;
+		MyPawn = NewOwner;
+		// net owner for RPC calls
+		SetOwner(NewOwner);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// Inventory
+
+void ALootBag::OnEquip()
+{
+	AttachMeshToPawn();
+
+	bPendingEquip = true;
+	//DetermineWeaponState();
+
+	//// Only play animation if last weapon is valid
+	//if (LastWeapon)
+	//{
+	//	float Duration = PlayWeaponAnimation(EquipAnim);
+	//	if (Duration <= 0.0f)
+	//	{
+	//		// failsafe
+	//		Duration = 0.5f;
+	//	}
+	//	EquipStartedTime = GetWorld()->GetTimeSeconds();
+	//	EquipDuration = Duration;
+
+	//	GetWorldTimerManager().SetTimer(TimerHandle_OnEquipFinished, this, &ALootBag::OnEquipFinished, Duration, false);
+	//}
+	//else
+	//{
+	//	OnEquipFinished();
+	//}
+	OnEquipFinished();
+
+	//if (MyPawn && MyPawn->IsLocallyControlled())
+	//{
+	//	PlayWeaponSound(EquipSound);
+	//}
+}
+
+void ALootBag::OnEquipFinished()
+{
+	AttachMeshToPawn();
+
+	bIsEquipped = true;
+	bPendingEquip = false;
+
+	//// Determine the state so that the can reload checks will work
+	//DetermineWeaponState(); 
+	//
+	//if (MyPawn)
+	//{
+	//	// try to reload empty clip
+	//	if (MyPawn->IsLocallyControlled() &&
+	//		CurrentAmmoInClip <= 0 &&
+	//		CanReload())
+	//	{
+	//		StartReload();
+	//	}
+	//}
+
+
+}
+
+void ALootBag::AttachMeshToPawn()
+{
+	if (MyPawn)
+	{
+		// Remove and hide both first and third person meshes
+		DetachMeshFromPawn();
+
+		// For locally controller players we attach both weapons and let the bOnlyOwnerSee, bOwnerNoSee flags deal with visibility.
+		FName AttachPoint = MyPawn->GetWeaponAttachPoint();
+
+		//UE_LOG(LogTemp, Log, TEXT("Health Changed: %s"), *AttachPoint.ToString());
+
+		if (MyPawn->IsLocallyControlled() == true)
+		{
+			USkeletalMeshComponent* PawnMesh1p = MyPawn->GetSpecifcPawnMesh(true);
+			//USkeletalMeshComponent* PawnMesh3p = MyPawn->GetSpecifcPawnMesh(false);
+			MeshComp->SetHiddenInGame(false);
+			//Mesh3P->SetHiddenInGame(false);
+			MeshComp->AttachToComponent(PawnMesh1p, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
+			//Mesh3P->AttachToComponent(PawnMesh3p, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
+		}
+		else
+		{
+			USkeletalMeshComponent* UsePawnMesh = MyPawn->GetPawnMesh();
+			MeshComp->AttachToComponent(UsePawnMesh, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
+			MeshComp->SetHiddenInGame(false);
+		}
+	}
+}

@@ -14,6 +14,9 @@
 #include "FPSGame.h"
 #include "Animation/AnimInstance.h"
 #include "ShooterCharacterMovement.h"
+#include "Containers/LootBag.h"
+#include "GameFramework/PlayerController.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer)
@@ -57,9 +60,78 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 	bWantsToRun = false;
 	bWantsToFire = false;
 	bWantsToRunToggled = false;
+	bIsCarryingLootBag = false;
 
 	TargetingSpeedModifier = 0.5f;
 	RunningSpeedModifier = 1.5f;
+	InteractableDistance = 100.0f;
+}
+
+
+// Called every frame
+void AShooterCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (bWantsToRunToggled && !IsRunning())
+	{
+		SetRunning(false, false);
+	}
+
+	//float TargetFOV = bWantsToZoom ? ZoomedFOV : DefaultFOV;
+	//
+	//float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaTime, ZoomedInterpSpeed);
+	//
+	//CameraComp->SetFieldOfView(NewFOV);
+
+	//if (Dot())
+
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (PlayerController)
+	{
+		FVector CamLoc;
+		FRotator CamRot;
+		PlayerController->GetPlayerViewPoint(CamLoc, CamRot);
+
+		//FCollisionObjectQueryParams InterestedInObjects;
+		//InterestedInObjects.AddObjectTypesToQuery(ECC_GameTraceChannel2);
+
+		//InterestedInObjects.AddObjectTypesToQuery(ECC_);
+		//OBJECTCHANNEL_INTERACTABLE
+		FCollisionQueryParams TraceParams;
+		TraceParams.AddIgnoredActor(CurrentWeapon);
+		TraceParams.AddIgnoredActor(GetOwner());
+		TraceParams.AddIgnoredActor(this);
+		TraceParams.bTraceComplex = false;
+		//TraceParams.bReturnPhysicalMaterial = true;
+
+		FHitResult Hit;
+
+		FVector TraceEnd = CamLoc + (CamRot.Vector() * InteractableDistance);
+
+		//bool bResult = GetWorld()->LineTraceSingleByObjectType(Hit, CamLoc, TraceEnd, InterestedInObjects, TraceParams);
+		bool bResult = GetWorld()->LineTraceSingleByChannel(Hit, CamLoc, TraceEnd, COLLISION_INTERACTABLE, TraceParams);
+
+		if (bResult)
+		{
+			float time = PlayerController->GetInputKeyTimeDown(FKey("F"));
+			if (time > 2.0f)
+			{
+				ALootBag* LootBag = Cast<ALootBag>(Hit.Actor);
+
+				if (LootBag)
+				{
+					CurrentLootBag = LootBag;
+
+					//CurrentWeapon->AttachToComponent(Mesh1PComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachPoint);
+
+					CurrentLootBag->SetOwningPawn(this);	// Make sure weapon's MyPawn is pointing back to us. During replication, we can't guarantee APawn::CurrentWeapon will rep after AWeapon::MyPawn!
+					CurrentLootBag->OnEquip();
+
+				}
+			}
+		}
+	}
 }
 
 // Called when the game starts or when spawned
@@ -172,6 +244,11 @@ void AShooterCharacter::StopFiring()
 bool AShooterCharacter::IsFiring() const
 {
 	return bWantsToFire;
+}
+
+bool AShooterCharacter::IsCarryingLootBag() const
+{
+	return bIsCarryingLootBag;
 }
 
 AShooterWeapon * AShooterCharacter::GetWeapon() const
@@ -352,6 +429,11 @@ USkeletalMeshComponent* AShooterCharacter::GetSpecifcPawnMesh(bool WantFirstPers
 	//return WantFirstPerson == true ? Mesh1P : GetMesh();
 }
 
+float AShooterCharacter::GetCarryingLootBagSpeedModifier() const
+{
+	return CurrentLootBag ? CurrentLootBag->GetCarryingLootBagSpeedModifier() : 1.0f;
+}
+
 FName AShooterCharacter::GetWeaponAttachPoint() const
 {
 	return WeaponAttachPoint;
@@ -415,23 +497,6 @@ void AShooterCharacter::OnPrevWeapon()
 			EquipWeapon(PrevWeapon);
 		}
 	//}
-}
-
-// Called every frame
-void AShooterCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	if (bWantsToRunToggled && !IsRunning())
-	{
-		SetRunning(false, false);
-	}
-
-	//float TargetFOV = bWantsToZoom ? ZoomedFOV : DefaultFOV;
-	//
-	//float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaTime, ZoomedInterpSpeed);
-	//
-	//CameraComp->SetFieldOfView(NewFOV);
 }
 
 // Called to bind functionality to input

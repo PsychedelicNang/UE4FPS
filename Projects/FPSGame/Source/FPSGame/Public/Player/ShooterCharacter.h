@@ -21,7 +21,6 @@ class FPSGAME_API AShooterCharacter : public ACharacter
 	/** spawn inventory, setup initial variables */
 	virtual void PostInitializeComponents() override;
 
-
 	/** get mesh component */
 	USkeletalMeshComponent* GetPawnMesh() const;
 
@@ -82,11 +81,21 @@ protected:
 	UPROPERTY(Transient, Replicated)
 		TArray<class AShooterWeapon*> Inventory;
 
+	class ALootBag* CurrentLootBag;
 
 	bool bWantsToRun;
 	bool bWantsToRunToggled;
 	bool bIsTargeting;
 	bool bWantsToFire;
+
+	bool bIsCarryingLootBag;
+
+	bool bCanInteractWithObj;
+
+
+	UPROPERTY(EditDefaultsOnly, Category = Player)
+		// Distance from which this pawn can interact with distance from
+		float InteractableDistance;
 
 protected:
 	// Called when the game starts or when spawned
@@ -185,7 +194,6 @@ protected:
 	/** player pressed prev weapon action */
 	void OnPrevWeapon();
 
-
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -216,6 +224,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
 		bool IsFiring() const;
 
+	/** get firing state */
+	UFUNCTION(BlueprintCallable, Category = Pawn)
+		bool IsCarryingLootBag() const;
+
 	/** get weapon taget modifier speed	*/
 	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
 		float GetTargetingSpeedModifier() const;
@@ -223,6 +235,10 @@ public:
 	/** get the modifier value for running speed */
 	UFUNCTION(BlueprintCallable, Category = Pawn)
 		float GetRunningSpeedModifier() const;
+
+	/** get the modifier value for running speed */
+	UFUNCTION(BlueprintCallable, Category = Pawn)
+		float GetCarryingLootBagSpeedModifier() const;
 
 	/** get weapon attach point */
 	FName GetWeaponAttachPoint() const;

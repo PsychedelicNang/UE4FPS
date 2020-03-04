@@ -7,3 +7,8 @@
 #define SURFACE_FLESHDEFAULT		SurfaceType1
 #define SURFACE_FLESHVULNERABLE		SurfaceType2
 #define COLLISION_WEAPON			ECC_GameTraceChannel1
+#define COLLISION_INTERACTABLE		ECC_GameTraceChannel2
+
+//UE_LOG(LogTemp, Log, TEXT("Looking!"));
+
+//DrawDebugDirectionalArrow(GetWorld(), CamLoc, TraceEnd, 32, FColor::Yellow, false, 5.0f, 0, 1.0f);
