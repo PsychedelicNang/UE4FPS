@@ -7,6 +7,7 @@
 #include "LootBag.generated.h"
 
 class AShooterCharacter;
+class UPrimitiveComponent;
 
 UCLASS()
 class FPSGAME_API ALootBag : public AActor
@@ -43,6 +44,8 @@ protected:
 	/** pawn owner */
 	UPROPERTY(Transient)
 		AShooterCharacter* MyPawn;
+
+	UPrimitiveComponent* PrimComp;
 
 public:	
 	// Sets default values for this actor's properties
@@ -94,4 +97,11 @@ public:
 	virtual void OnLeaveInventory();
 
 	bool IsAttachedToPawn() const;
+
+	// Converts the mass of this loot bag from grams (mass of $1) to Kg
+	float GetMassOfBagInKg() const;
+
+	void LaunchItem(FVector LaunchVelocity);
+
+	void StopMovementAndDrop();
 };

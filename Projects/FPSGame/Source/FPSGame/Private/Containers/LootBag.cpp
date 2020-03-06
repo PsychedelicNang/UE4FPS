@@ -7,6 +7,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Player/ShooterCharacter.h"
 #include "Components/PrimitiveComponent.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 ALootBag::ALootBag()
@@ -32,8 +33,12 @@ ALootBag::ALootBag()
 	//SphereCollisionComp->SetSphereRadius(125.0f);
 
 	DefaultMoneyStored = 50000;
-
 	CarryingSpeedModifier = 0.5f;
+	CurrentMoneyStored = DefaultMoneyStored;
+
+	PrimComp = Cast<UPrimitiveComponent>(GetComponentByClass(UPrimitiveComponent::StaticClass()));
+	PrimComp->SetSimulatePhysics(true);
+	PrimComp->SetMassOverrideInKg(NAME_None, GetMassOfBagInKg(), true);
 }
 
 // Called when the game starts or when spawned
@@ -42,9 +47,8 @@ void ALootBag::BeginPlay()
 	Super::BeginPlay();
 
 	CurrentMoneyStored = DefaultMoneyStored;
-	CarryingSpeedModifier =  ((float)(DefaultMoneyStored % CurrentMoneyStored)) + 0.5f;
-	//UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(GetComponentByClass(UPrimitiveComponent::StaticClass()));
-	//PrimComp->SetMassOverrideInKg(NAME_None, 10.0f, true);
+	CarryingSpeedModifier =  1 - (CurrentMoneyStored * 0.00001f);
+	PrimComp->SetMassOverrideInKg(NAME_None, GetMassOfBagInKg(), true);
 }
 
 //void ALootBag::OnBeginOverlapSphereCollisionComponent(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
@@ -83,7 +87,15 @@ float ALootBag::GetCarryingLootBagSpeedModifier() const
 
 void ALootBag::DetachMeshFromPawn()
 {
-	MeshComp->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+	MeshComp->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+
+	//SetActorLocation(Location);
+	PrimComp->SetSimulatePhysics(true);
+	MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+	//PrimComp->SetSimulatePhysics(true);
+	//MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
 	//MeshComp->SetHiddenInGame(true);
 
 	//Mesh3P->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
@@ -113,10 +125,35 @@ bool ALootBag::IsAttachedToPawn() const
 	return  bIsEquipped || bPendingEquip;
 	//return bIsEquipped || bPendingEquip;
 }
+float ALootBag::GetMassOfBagInKg() const
+{
+	return CurrentMoneyStored * 0.001f;
+}
+
+void ALootBag::LaunchItem(FVector LaunchVelocity)
+{
+	if (PrimComp)
+	{
+		PrimComp->AddImpulse(LaunchVelocity, NAME_None, true);
+	}
+}
+
+void ALootBag::StopMovementAndDrop()
+{
+	// Stop all movement
+	PrimComp->SetSimulatePhysics(false);
+	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	// Drop the object
+	PrimComp->SetSimulatePhysics(true);
+	MeshComp->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+}
+
 void ALootBag::OnUnEquip()
 {
 	DetachMeshFromPawn();
 	bIsEquipped = false;
+
 	//StopFire();
 
 	//if (bPendingReload)
@@ -219,9 +256,12 @@ void ALootBag::AttachMeshToPawn()
 		DetachMeshFromPawn();
 
 		// For locally controller players we attach both weapons and let the bOnlyOwnerSee, bOwnerNoSee flags deal with visibility.
-		FName AttachPoint = MyPawn->GetWeaponAttachPoint();
+		FName AttachPoint = MyPawn->GetLootBagAttachPoint();
 
 		//UE_LOG(LogTemp, Log, TEXT("Health Changed: %s"), *AttachPoint.ToString());
+
+		PrimComp->SetSimulatePhysics(false);
+		MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 		if (MyPawn->IsLocallyControlled() == true)
 		{
@@ -229,14 +269,17 @@ void ALootBag::AttachMeshToPawn()
 			//USkeletalMeshComponent* PawnMesh3p = MyPawn->GetSpecifcPawnMesh(false);
 			MeshComp->SetHiddenInGame(false);
 			//Mesh3P->SetHiddenInGame(false);
-			MeshComp->AttachToComponent(PawnMesh1p, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
+			MeshComp->AttachToComponent(PawnMesh1p, FAttachmentTransformRules::SnapToTargetIncludingScale,  AttachPoint);
 			//Mesh3P->AttachToComponent(PawnMesh3p, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
 		}
 		else
 		{
 			USkeletalMeshComponent* UsePawnMesh = MyPawn->GetPawnMesh();
-			MeshComp->AttachToComponent(UsePawnMesh, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
+			MeshComp->AttachToComponent(UsePawnMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, AttachPoint);
 			MeshComp->SetHiddenInGame(false);
 		}
+
+		//DrawDebugSphere(GetWorld(), GetActorLocation(), 10.0f, 12, FColor::Green, false, 5.0f, 0, 1.0f);
+		//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(124, -50, 121), 10.0f, 12, FColor::Green, false, 5.0f, 0, 1.0f);
 	}
 }

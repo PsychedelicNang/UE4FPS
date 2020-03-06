@@ -161,15 +161,33 @@ void AShooterWeapon::AttachMeshToPawn()
 			//USkeletalMeshComponent* PawnMesh3p = MyPawn->GetSpecifcPawnMesh(false);
 			MeshComp->SetHiddenInGame(false);
 			//Mesh3P->SetHiddenInGame(false);
-			MeshComp->AttachToComponent(PawnMesh1p, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
+			bool result = MeshComp->AttachToComponent(PawnMesh1p, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
 			//Mesh3P->AttachToComponent(PawnMesh3p, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
+			
+			if (result)
+			{
+				UE_LOG(LogTemp, Log, TEXT("Attached"));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Log, TEXT("Not"));
+			}
 		}
 		else
 		{
 			USkeletalMeshComponent* UseWeaponMesh = GetWeaponMesh();
 			USkeletalMeshComponent* UsePawnMesh = MyPawn->GetPawnMesh();
-			UseWeaponMesh->AttachToComponent(UsePawnMesh, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
+			bool result = UseWeaponMesh->AttachToComponent(UsePawnMesh, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
 			UseWeaponMesh->SetHiddenInGame(false);
+
+			if (result)
+			{
+				UE_LOG(LogTemp, Log, TEXT("Attached (else)"));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Log, TEXT("Not (else)"));
+			}
 		}
 	}
 }

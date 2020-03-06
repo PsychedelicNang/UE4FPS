@@ -65,6 +65,8 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 	TargetingSpeedModifier = 0.5f;
 	RunningSpeedModifier = 1.5f;
 	InteractableDistance = 100.0f;
+
+	LaunchStrength = 1000.0f;
 }
 
 
@@ -115,7 +117,7 @@ void AShooterCharacter::Tick(float DeltaTime)
 		if (bResult)
 		{
 			float time = PlayerController->GetInputKeyTimeDown(FKey("F"));
-			if (time > 2.0f)
+			if (time > 1.0f)
 			{
 				ALootBag* LootBag = Cast<ALootBag>(Hit.Actor);
 
@@ -127,10 +129,17 @@ void AShooterCharacter::Tick(float DeltaTime)
 
 					CurrentLootBag->SetOwningPawn(this);	// Make sure weapon's MyPawn is pointing back to us. During replication, we can't guarantee APawn::CurrentWeapon will rep after AWeapon::MyPawn!
 					CurrentLootBag->OnEquip();
-
+				
+					bIsCarryingLootBag = true;
 				}
 			}
 		}
+
+		//FRotator ActorRot = GetActorRotation();
+		//ActorRot.Pitch = CamRot.Pitch;
+
+		//DrawDebugSphere(GetWorld(), GetActorLocation(), 10.0f, 12, FColor::Green, false, 0.0f, 0, 1.0f);
+		//DrawDebugSphere(GetWorld(), CamLoc + CamRot.RotateVector(FVector(121, 0, 0)), 10.0f, 12, FColor::Green, false, 0.0f, 0, 1.0f);
 	}
 }
 
@@ -165,6 +174,10 @@ void AShooterCharacter::BeginPlay()
 	//		CurrentWeapon->OnWeaponFired.AddDynamic(this, &AShooterCharacter::HandleOnWeaponFired);
 	//	}
 	//}
+
+	
+
+	
 }
 
 void AShooterCharacter::MoveForward(float Value)
@@ -439,6 +452,11 @@ FName AShooterCharacter::GetWeaponAttachPoint() const
 	return WeaponAttachPoint;
 }
 
+FName AShooterCharacter::GetLootBagAttachPoint() const
+{
+	return LootBagAttachPoint;
+}
+
 void AShooterCharacter::SetCurrentWeapon(AShooterWeapon* NewWeapon, AShooterWeapon* LastWeapon)
 {
 	AShooterWeapon* LocalLastWeapon = nullptr;
@@ -460,7 +478,7 @@ void AShooterCharacter::SetCurrentWeapon(AShooterWeapon* NewWeapon, AShooterWeap
 
 	CurrentWeapon = NewWeapon;
 
-	CurrentWeapon->AttachToComponent(Mesh1PComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachPoint);
+	//CurrentWeapon->AttachToComponent(Mesh1PComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachPoint);
 
 	// equip new one
 	if (NewWeapon)
@@ -499,6 +517,34 @@ void AShooterCharacter::OnPrevWeapon()
 	//}
 }
 
+void AShooterCharacter::OnThrowItem()
+{
+	// Throw the item being carried (Loot Bag)
+
+	if (bIsCarryingLootBag && CurrentLootBag)
+	{
+		APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+		if (PlayerController)
+		{
+			// Get the location and rotation of the camera
+			FVector CamLoc;
+			FRotator CamRot;
+			PlayerController->GetPlayerViewPoint(CamLoc, CamRot);
+
+			bIsCarryingLootBag = false;
+			CurrentLootBag->OnUnEquip();
+
+			// Make sure to move the CurrentLootBag away from our player since we don't want it to collide with the person throwing it.
+			FVector NewLocation = CamLoc + CamRot.RotateVector(FVector(120, 0, 0));
+			CurrentLootBag->SetActorLocation(NewLocation);
+			
+			// Launch the lootbag away from the player relative to the camera's rotation
+			FVector Direction = CamRot.Vector() * LaunchStrength;
+			CurrentLootBag->LaunchItem(Direction);
+		}
+	}
+}
+
 // Called to bind functionality to input
 void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -517,7 +563,6 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AShooterCharacter::StartJump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AShooterCharacter::StopJump);
 
-
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AShooterCharacter::BeginFiring);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AShooterCharacter::StopFiring);
 
@@ -532,6 +577,8 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction("NextWeapon", IE_Pressed, this, &AShooterCharacter::OnNextWeapon);
 	PlayerInputComponent->BindAction("PrevWeapon", IE_Pressed, this, &AShooterCharacter::OnPrevWeapon);
+
+	PlayerInputComponent->BindAction("ThrowItem", IE_Pressed, this, &AShooterCharacter::OnThrowItem);
 }
 
 void AShooterCharacter::OnStartTargeting()

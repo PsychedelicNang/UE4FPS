@@ -73,6 +73,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Inventory)
 		FName WeaponAttachPoint;
 
+	/** socket or bone name for attaching lootbags */
+	UPROPERTY(EditDefaultsOnly, Category = Inventory)
+		FName LootBagAttachPoint;
+
 	/** default inventory list */
 	UPROPERTY(EditDefaultsOnly, Category = Inventory)
 		TArray<TSubclassOf<class AShooterWeapon> > DefaultInventoryClasses;
@@ -96,6 +100,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Player)
 		// Distance from which this pawn can interact with distance from
 		float InteractableDistance;
+
+	float LaunchStrength;
 
 protected:
 	// Called when the game starts or when spawned
@@ -194,6 +200,8 @@ protected:
 	/** player pressed prev weapon action */
 	void OnPrevWeapon();
 
+	void OnThrowItem();
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -242,6 +250,9 @@ public:
 
 	/** get weapon attach point */
 	FName GetWeaponAttachPoint() const;
+
+	/** get weapon attach point */
+	FName GetLootBagAttachPoint() const;
 
 	/*
 * Get either first or third person mesh.
