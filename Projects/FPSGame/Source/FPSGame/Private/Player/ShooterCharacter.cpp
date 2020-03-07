@@ -17,6 +17,8 @@
 #include "Containers/LootBag.h"
 #include "GameFramework/PlayerController.h"
 #include "DrawDebugHelpers.h"
+#include "Stockpile.h"
+#include "TimerManager.h"
 
 // Sets default values
 AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer)
@@ -69,7 +71,6 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 	LaunchStrength = 1000.0f;
 }
 
-
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
@@ -89,8 +90,15 @@ void AShooterCharacter::Tick(float DeltaTime)
 	//if (Dot())
 
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	if (PlayerController)
+	if (PlayerController && !bIsCarryingLootBag && CurrentLootBag == nullptr)
 	{
+		bool QuickCheck = PlayerController->IsInputKeyDown(FKey("F"));
+		if (!QuickCheck)
+		{
+			// Don't do anything if the user is not attemping to iteract with something
+			return;
+		}
+
 		FVector CamLoc;
 		FRotator CamRot;
 		PlayerController->GetPlayerViewPoint(CamLoc, CamRot);
@@ -119,6 +127,9 @@ void AShooterCharacter::Tick(float DeltaTime)
 			float time = PlayerController->GetInputKeyTimeDown(FKey("F"));
 			if (time > 1.0f)
 			{
+				//bAlreadyGrabbedLootBag = true;
+				//GetWorldTimerManager().SetTimer(TimerHandle_GrabLootBagDelay, this, &AShooterCharacter::OnLootBagDelayFinished, 1.0f, false, 0.0f);
+
 				ALootBag* LootBag = Cast<ALootBag>(Hit.Actor);
 
 				if (LootBag)
@@ -131,6 +142,25 @@ void AShooterCharacter::Tick(float DeltaTime)
 					CurrentLootBag->OnEquip();
 				
 					bIsCarryingLootBag = true;
+				}
+
+				AStockpile* Stockpile = Cast<AStockpile>(Hit.Actor);
+
+				if (Stockpile)
+				{
+					ALootBag* GrabbedBag = Stockpile->GetLootBagFromPile();
+
+					if (GrabbedBag)
+					{
+						CurrentLootBag = GrabbedBag;
+						
+						CurrentLootBag->SetOwningPawn(this);
+						CurrentLootBag->OnEquip();
+
+						bIsCarryingLootBag = true;
+
+						UE_LOG(LogTemp, Log, TEXT("Grabbed loot bag"));
+					}
 				}
 			}
 		}
@@ -541,6 +571,8 @@ void AShooterCharacter::OnThrowItem()
 			// Launch the lootbag away from the player relative to the camera's rotation
 			FVector Direction = CamRot.Vector() * LaunchStrength;
 			CurrentLootBag->LaunchItem(Direction);
+
+			CurrentLootBag = nullptr;
 		}
 	}
 }

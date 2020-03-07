@@ -4,6 +4,7 @@
 #include "Stockpile.h"
 #include "LootBag.h"
 #include "DrawDebugHelpers.h"
+#include "Components/ShapeComponent.h"
 
 AStockpile::AStockpile()
 {
@@ -37,4 +38,23 @@ void AStockpile::BeginPlay()
 		
 		Offset += Extent.X;
 	}
+
+	// Make sure physics bodies (Pawns) do not go into the trigger box
+
+	UShapeComponent* CollisionComponent = GetCollisionComponent();
+	CollisionComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+	//CollisionComponent->SetCollisionResponseToChannel()
 }
+
+ALootBag * AStockpile::GetLootBagFromPile()
+{
+	if (LootBagPool.Num() > 0)
+	{
+		return LootBagPool.Pop();
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+

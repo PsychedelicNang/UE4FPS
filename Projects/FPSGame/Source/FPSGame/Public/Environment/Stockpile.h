@@ -29,4 +29,6 @@ public:
 	AStockpile();
 
 	virtual void BeginPlay() override;
+
+	ALootBag* GetLootBagFromPile();
 };

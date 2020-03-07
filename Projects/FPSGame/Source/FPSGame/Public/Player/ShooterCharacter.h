@@ -96,7 +96,6 @@ protected:
 
 	bool bCanInteractWithObj;
 
-
 	UPROPERTY(EditDefaultsOnly, Category = Player)
 		// Distance from which this pawn can interact with distance from
 		float InteractableDistance;
