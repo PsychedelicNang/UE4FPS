@@ -155,6 +155,21 @@ void ALootBag::StopMovementAndDrop()
 	// Note: We cannot stop physics or change the collision properties because it will say we stopped colliding with the extraction zone (Say we are no longer in the zone when in fact we are)
 }
 
+FVector ALootBag::GetMeshExtents() const
+{
+	if (MeshComp)
+	{
+		FVector Min;
+		FVector Max;
+		MeshComp->GetLocalBounds(Min, Max);
+		return Max - Min;
+	}
+	else
+	{
+		return FVector::ZeroVector;
+	}
+}
+
 void ALootBag::OnUnEquip()
 {
 	DetachMeshFromPawn();

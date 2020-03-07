@@ -110,4 +110,6 @@ public:
 	void LaunchItem(FVector LaunchVelocity);
 
 	void StopMovementAndDrop();
+
+	FVector GetMeshExtents() const;
 };
