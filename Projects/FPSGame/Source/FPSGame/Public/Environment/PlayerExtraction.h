@@ -31,4 +31,7 @@ protected:
 	UFUNCTION()
 		void OnOverlapEnd(AActor* OverlappedActor, AActor* OtherActor);
 
+public:
+	uint8 GetNumberOfPlayersInZone() const;
+
 };

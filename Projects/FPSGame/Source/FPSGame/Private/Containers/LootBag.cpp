@@ -8,6 +8,7 @@
 #include "Player/ShooterCharacter.h"
 #include "Components/PrimitiveComponent.h"
 #include "DrawDebugHelpers.h"
+#include "TimerManager.h"
 
 // Sets default values
 ALootBag::ALootBag()
@@ -51,6 +52,12 @@ void ALootBag::BeginPlay()
 	PrimComp->SetMassOverrideInKg(NAME_None, GetMassOfBagInKg(), true);
 }
 
+void ALootBag::FinishDropping()
+{
+	// Set our linear damping back to 0 so gravity affects us and we land on the ground
+	PrimComp->SetLinearDamping(0.0f);
+}
+
 //void ALootBag::OnBeginOverlapSphereCollisionComponent(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 //{
 //	UE_LOG(LogTemp, Log, TEXT("Overlapped!"));
@@ -77,7 +84,6 @@ void ALootBag::BeginPlay()
 void ALootBag::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 float ALootBag::GetCarryingLootBagSpeedModifier() const
@@ -140,13 +146,13 @@ void ALootBag::LaunchItem(FVector LaunchVelocity)
 
 void ALootBag::StopMovementAndDrop()
 {
-	// Stop all movement
-	PrimComp->SetSimulatePhysics(false);
-	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	// Set our linear damping so we ignore the current impulse being applied to the player
+	PrimComp->SetLinearDamping(FLT_MAX);
 
-	// Drop the object
-	PrimComp->SetSimulatePhysics(true);
-	MeshComp->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	// Wait half a second before we drop the bag
+	GetWorldTimerManager().SetTimer(TimerHandle_WaitToDrop, this, &ALootBag::FinishDropping, 0.5f, false, 0.0f);
+
+	// Note: We cannot stop physics or change the collision properties because it will say we stopped colliding with the extraction zone (Say we are no longer in the zone when in fact we are)
 }
 
 void ALootBag::OnUnEquip()

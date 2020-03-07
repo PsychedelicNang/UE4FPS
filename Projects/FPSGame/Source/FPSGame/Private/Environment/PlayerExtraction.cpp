@@ -40,3 +40,8 @@ void APlayerExtraction::OnOverlapEnd(AActor* OverlappedActor, AActor* OtherActor
 		}
 	}
 }
+
+uint8 APlayerExtraction::GetNumberOfPlayersInZone() const
+{
+	return NumPlayersInZone;
+}

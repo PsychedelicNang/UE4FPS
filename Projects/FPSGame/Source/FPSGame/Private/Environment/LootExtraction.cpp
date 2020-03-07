@@ -44,3 +44,8 @@ void ALootExtraction::OnOverlapEnd(AActor* OverlappedActor, AActor* OtherActor)
 		}
 	}
 }
+
+uint8 ALootExtraction::GetNumberOfLootBagsInZone() const
+{
+	return NumBagsInZone;
+}
