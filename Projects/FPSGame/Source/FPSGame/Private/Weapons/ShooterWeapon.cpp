@@ -13,6 +13,7 @@
 #include "FPSGame.h"
 #include "Net/UnrealNetwork.h"
 #include "ShooterCharacter.h"
+#include "Particles/ParticleSystemComponent.h"
 
 static int32 DebugWeaponDrawing = 0;
 FAutoConsoleVariableRef CVARDebugWeaponDrawing(
@@ -298,6 +299,12 @@ void AShooterWeapon::StopFiring()
 {
 	GetWorldTimerManager().ClearTimer(TimerHandle_TimeBetweenShots);
 	StopWeaponAnimation(FireAnim);
+
+	//if (MuzzlePSC)
+	//{
+	//	MuzzlePSC->DeactivateSystem();
+	//	MuzzlePSC = nullptr;
+	//}
 }
 
 void AShooterWeapon::Reload()
@@ -309,7 +316,7 @@ void AShooterWeapon::PlayFireEffects(FVector TraceEnd)
 {
 	if (MuzzleEffect)
 	{
-		UGameplayStatics::SpawnEmitterAttached(MuzzleEffect, MeshComp, MuzzleSocketName);
+		MuzzlePSC = UGameplayStatics::SpawnEmitterAttached(MuzzleEffect, MeshComp, MuzzleSocketName);
 	}
 
 	if (TracerEffect)

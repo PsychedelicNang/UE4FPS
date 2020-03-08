@@ -66,7 +66,7 @@ void AShooterWeapon_Instant::FireWeapon()
 
 		//if (DebugWeaponDrawing > 0)
 		//{
-		DrawDebugLine(GetWorld(), MuzzleLocation, TraceEnd, FColor::Green, false, 1.0f, 0, 1.0f);
+		//	DrawDebugLine(GetWorld(), MuzzleLocation, TraceEnd, FColor::Green, false, 1.0f, 0, 1.0f);
 		//}
 
 		PlayFireEffects(TracerEndPoint);

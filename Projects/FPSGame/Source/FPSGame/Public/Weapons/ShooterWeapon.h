@@ -163,6 +163,10 @@ protected:
 	/** current weapon state */
 	EWeaponState::Type CurrentState;
 
+	/** spawned component for muzzle FX */
+	UPROPERTY(Transient)
+		class UParticleSystemComponent* MuzzlePSC;
+
 protected:
 	void PlayFireEffects(FVector TraceEnd);
 
