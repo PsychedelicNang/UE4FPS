@@ -184,6 +184,7 @@ void AShooterWeapon::AttachMeshToPawn()
 			if (result)
 			{
 				UE_LOG(LogTemp, Log, TEXT("Attached (else)"));
+				UE_LOG(LogTemp, Log, TEXT("test!"));
 			}
 			else
 			{
@@ -203,6 +204,7 @@ void AShooterWeapon::DetachMeshFromPawn()
 {
 	MeshComp->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
 	MeshComp->SetHiddenInGame(true);
+	UE_LOG(LogTemp, Log, TEXT("Set Hidden %s"), *MeshComp->GetName());
 
 	//Mesh3P->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
 	//Mesh3P->SetHiddenInGame(true);
@@ -289,14 +291,64 @@ void AShooterWeapon::Fire()
 	}
 }
 
+bool AShooterWeapon::ServerStartFire_Validate()
+{
+	return true;
+}
+
+void AShooterWeapon::ServerStartFire_Implementation()
+{
+	BeginFiring();
+}
+
+bool AShooterWeapon::ServerStopFire_Validate()
+{
+	return true;
+}
+
+void AShooterWeapon::ServerStopFire_Implementation()
+{
+	StopFiring();
+}
+
+void AShooterWeapon::ServerStartReload_Implementation()
+{
+	StartReload();
+}
+
+void AShooterWeapon::ServerStopReload_Implementation()
+{
+	StopReload();
+}
+
+bool AShooterWeapon::ServerStartReload_Validate()
+{
+	return true;
+}
+
+bool AShooterWeapon::ServerStopReload_Validate()
+{
+	return true;
+}
+
 void AShooterWeapon::BeginFiring()
 {
+	if (Role < ROLE_Authority)
+	{
+		ServerStartFire();
+	}
+	
 	float FirstDelay = FMath::Max(LastFiredTime + WeaponConfig.TimeBetweenShots - GetWorld()->TimeSeconds, 0.0f);
 	GetWorldTimerManager().SetTimer(TimerHandle_TimeBetweenShots, this, &AShooterWeapon::Fire, WeaponConfig.TimeBetweenShots, true, FirstDelay);
 }
 
 void AShooterWeapon::StopFiring()
 {
+	if (Role < ROLE_Authority)
+	{
+		ServerStopFire();
+	}
+
 	GetWorldTimerManager().ClearTimer(TimerHandle_TimeBetweenShots);
 	StopWeaponAnimation(FireAnim);
 
@@ -307,9 +359,19 @@ void AShooterWeapon::StopFiring()
 	//}
 }
 
-void AShooterWeapon::Reload()
+void AShooterWeapon::StartReload()
 {
+	if (Role < ROLE_Authority)
+	{
+		ServerStartReload();
+	}
+
 	MagazineSize = MagazineCapacity;
+}
+
+void AShooterWeapon::StopReload()
+{
+	// TODO: Implement...
 }
 
 void AShooterWeapon::PlayFireEffects(FVector TraceEnd)

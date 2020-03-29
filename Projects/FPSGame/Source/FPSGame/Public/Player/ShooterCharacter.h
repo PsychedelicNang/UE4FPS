@@ -87,7 +87,9 @@ protected:
 
 	class ALootBag* CurrentLootBag;
 
-	bool bWantsToRun;
+	UPROPERTY(Transient, Replicated)
+	uint8 bWantsToRun : 1;
+
 	bool bWantsToRunToggled;
 	bool bIsTargeting;
 	bool bWantsToFire;
@@ -144,6 +146,16 @@ protected:
 
 	/** player released targeting action */
 	void OnStopTargeting();
+
+	/** [local] starts weapon fire */
+	void OnStartFiring();
+	
+	/** [local] stops weapon fire */
+	void OnStopFiring();
+
+	/** update targeting state */
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerSetRunning(bool bNewRunning, bool bToggle);
 
 	UFUNCTION()
 		void OnHealthChanged(class UShooterHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);

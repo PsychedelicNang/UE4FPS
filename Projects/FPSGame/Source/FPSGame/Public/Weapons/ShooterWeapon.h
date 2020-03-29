@@ -202,6 +202,22 @@ protected:
 	///** [server] weapon was removed from pawn's inventory */
 	//virtual void OnLeaveInventory();
 
+		//////////////////////////////////////////////////////////////////////////
+	// Input - server side
+
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerStartFire();
+
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerStopFire();
+
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerStartReload();
+
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerStopReload();
+
+
 	//////////////////////////////////////////////////////////////////////////
 // Inventory
 
@@ -221,7 +237,8 @@ protected:
 public:
 	virtual void BeginFiring();
 	virtual void StopFiring();
-	virtual void Reload();
+	virtual void StartReload();
+	virtual void StopReload();
 
 	/** set the weapon's owning pawn */
 	void SetOwningPawn(AShooterCharacter* AShooterCharacter);

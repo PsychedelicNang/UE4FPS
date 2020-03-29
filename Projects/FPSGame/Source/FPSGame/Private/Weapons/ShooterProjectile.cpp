@@ -39,6 +39,9 @@ AShooterProjectile::AShooterProjectile(const FObjectInitializer& ObjectInitializ
 	SetRemoteRoleForBackwardsCompat(ROLE_SimulatedProxy);
 	bReplicates = true;
 	bReplicateMovement = true;
+
+	//// TODO: Remove when not testing
+	//SetLifeSpan(8.0f);
 }
 
 void AShooterProjectile::PostInitializeComponents()

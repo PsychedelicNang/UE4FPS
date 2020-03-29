@@ -76,6 +76,14 @@ void AShooterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (!IsLocallyControlled())
+	{
+		FRotator NewRot = CameraComp->RelativeRotation;
+		NewRot.Pitch = RemoteViewPitch * 360.0f/255.0f; // Uncompress RemoteViewPitch
+
+		CameraComp->SetRelativeRotation(NewRot);
+	}
+
 	if (bWantsToRunToggled && !IsRunning())
 	{
 		SetRunning(false, false);
@@ -250,6 +258,26 @@ void AShooterCharacter::EndZoom()
 	bWantsToZoom = false;
 }
 
+void AShooterCharacter::OnStartFiring()
+{
+	//AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
+	//if (MyPC && MyPC->IsGameInputAllowed())
+	//{
+
+	if (IsRunning())
+	{
+		SetRunning(false, false);
+	}
+	BeginFiring();
+
+	//}
+}
+
+void AShooterCharacter::OnStopFiring()
+{
+	StopFiring();
+}
+
 void AShooterCharacter::BeginFiring()
 {
 	if (!bWantsToFire)
@@ -257,16 +285,6 @@ void AShooterCharacter::BeginFiring()
 		bWantsToFire = true;
 		if (CurrentWeapon)
 		{
-			//AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
-			//if (MyPC && MyPC->IsGameInputAllowed())
-			//{
-			if (IsRunning())
-			{
-				SetRunning(false, false);
-			}
-			//	StartWeaponFire();
-			//}
-
 			CurrentWeapon->BeginFiring();
 		}
 	}
@@ -320,7 +338,7 @@ void AShooterCharacter::Reload()
 {
 	if (CurrentWeapon)
 	{
-		CurrentWeapon->Reload();
+		CurrentWeapon->StartReload();
 	}
 }
 
@@ -373,10 +391,16 @@ void AShooterCharacter::SpawnDefaultInventory()
 		}
 	}
 
-	// equip first weapon in inventory
-	if (Inventory.Num() > 0)
+	for (int32 i = 0; i < NumWeaponClasses; i++)
 	{
-		EquipWeapon(Inventory[0]);
+		if (i == 0)
+		{
+			EquipWeapon(Inventory[i]);
+		}
+		else
+		{
+			Inventory[i]->OnUnEquip();
+		}
 	}
 
 
@@ -595,8 +619,8 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AShooterCharacter::StartJump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AShooterCharacter::StopJump);
 
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AShooterCharacter::BeginFiring);
-	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AShooterCharacter::StopFiring);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AShooterCharacter::OnStartFiring);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AShooterCharacter::OnStopFiring);
 
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AShooterCharacter::Reload);
 
@@ -653,8 +677,18 @@ void AShooterCharacter::SetRunning(bool bNewRunning, bool bToggle)
 
 	if (Role < ROLE_Authority)
 	{
-		//ServerSetRunning(bNewRunning, bToggle);
+		ServerSetRunning(bNewRunning, bToggle);
 	}
+}
+
+bool AShooterCharacter::ServerSetRunning_Validate(bool bNewRunning, bool bToggle)
+{
+	return true;
+}
+
+void AShooterCharacter::ServerSetRunning_Implementation(bool bNewRunning, bool bToggle)
+{
+	SetRunning(bNewRunning, bToggle);
 }
 
 void AShooterCharacter::OnStartRunning()
@@ -742,6 +776,8 @@ void AShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 	DOREPLIFETIME(AShooterCharacter, CurrentWeapon);
 	DOREPLIFETIME(AShooterCharacter, bDied);
+
+	DOREPLIFETIME_CONDITION(AShooterCharacter, bWantsToRun, COND_SkipOwner);
 }
 
 float AShooterCharacter::GetTargetingSpeedModifier() const
