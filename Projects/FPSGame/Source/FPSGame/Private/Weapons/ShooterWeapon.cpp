@@ -25,8 +25,9 @@ FAutoConsoleVariableRef CVARDebugWeaponDrawing(
 // Sets default values
 AShooterWeapon::AShooterWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	MeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MeshComp"));
-	RootComponent = MeshComp;
+	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh1P"));
+	Mesh3P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh3P"));
+	RootComponent = Mesh1P;
 
 	MuzzleSocketName = "MuzzleFlashSocket";
 	TracerTargetName = "BeamEnd";
@@ -156,58 +157,77 @@ void AShooterWeapon::AttachMeshToPawn()
 
 		//UE_LOG(LogTemp, Log, TEXT("Health Changed: %s"), *AttachPoint.ToString());
 
+		//USkeletalMeshComponent* PawnMesh1p = MyPawn->GetSpecifcPawnMesh(true);
+		////USkeletalMeshComponent* PawnMesh3p = MyPawn->GetSpecifcPawnMesh(false);
+		//MeshComp->SetHiddenInGame(false);
+		////Mesh3P->SetHiddenInGame(false);
+		//bool result = MeshComp->AttachToComponent(PawnMesh1p, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
+
 		if (MyPawn->IsLocallyControlled() == true)
 		{
 			USkeletalMeshComponent* PawnMesh1p = MyPawn->GetSpecifcPawnMesh(true);
-			//USkeletalMeshComponent* PawnMesh3p = MyPawn->GetSpecifcPawnMesh(false);
-			MeshComp->SetHiddenInGame(false);
-			//Mesh3P->SetHiddenInGame(false);
-			bool result = MeshComp->AttachToComponent(PawnMesh1p, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
-			//Mesh3P->AttachToComponent(PawnMesh3p, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
+			USkeletalMeshComponent* PawnMesh3p = MyPawn->GetSpecifcPawnMesh(false);
+			Mesh1P->SetHiddenInGame(false);
+			Mesh3P->SetHiddenInGame(false);
+			Mesh1P->AttachToComponent(PawnMesh1p, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
+			Mesh3P->AttachToComponent(PawnMesh3p, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
 			
-			if (result)
-			{
-				UE_LOG(LogTemp, Log, TEXT("Attached"));
-			}
-			else
-			{
-				UE_LOG(LogTemp, Log, TEXT("Not"));
-			}
+			//UE_LOG(LogTemp, Log, TEXT("IsLocallyControlled"));
+
+			//FTransform trans = MeshComp->GetRelativeTransform();
+			//FString location = trans.GetLocation().ToString();
+			//UE_LOG(LogTemp, Log, TEXT("IsLocallyControlled %s"), *location);
+			//if (result)
+			//{
+			//	UE_LOG(LogTemp, Log, TEXT("Attached"));
+			//	UE_LOG(LogTemp, Log, TEXT("Set Hidden %s"), *MeshComp->GetPathName());
+
+			//}
+			//else
+			//{
+			//	UE_LOG(LogTemp, Log, TEXT("Not"));
+			//	UE_LOG(LogTemp, Log, TEXT("Set Hidden %s"), *MeshComp->GetPathName());
+			//}
 		}
 		else
 		{
 			USkeletalMeshComponent* UseWeaponMesh = GetWeaponMesh();
+			//USkeletalMeshComponent* UsePawnMesh = MyPawn->GetSpecifcPawnMesh(true);
 			USkeletalMeshComponent* UsePawnMesh = MyPawn->GetPawnMesh();
 			bool result = UseWeaponMesh->AttachToComponent(UsePawnMesh, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
 			UseWeaponMesh->SetHiddenInGame(false);
+			//FTransform trans = MeshComp->GetRelativeTransform();
+			//FString location = trans.GetLocation().ToString();
+			//UE_LOG(LogTemp, Log, TEXT("NOT - IsLocallyControlled %s"), *location);
 
-			if (result)
-			{
-				UE_LOG(LogTemp, Log, TEXT("Attached (else)"));
-				UE_LOG(LogTemp, Log, TEXT("test!"));
-			}
-			else
-			{
-				UE_LOG(LogTemp, Log, TEXT("Not (else)"));
-			}
+			//if (result)
+			//{
+			//	UE_LOG(LogTemp, Log, TEXT("Attached (else)"));
+			//	UE_LOG(LogTemp, Log, TEXT("Set Hidden %s"), *MeshComp->GetPathName());
+			//}
+			//else
+			//{
+			//	UE_LOG(LogTemp, Log, TEXT("Not (else)"));
+			//	UE_LOG(LogTemp, Log, TEXT("Set Hidden %s"), *MeshComp->GetPathName());
+			//}
 		}
 	}
 }
 
 USkeletalMeshComponent* AShooterWeapon::GetWeaponMesh() const
 {
-	return MeshComp;
-	//return (MyPawn != NULL && MyPawn->IsFirstPerson()) ? Mesh1P : Mesh3P;
+	//return MeshComp;
+	return (MyPawn != NULL && MyPawn->IsFirstPerson()) ? Mesh1P : Mesh3P;
 }
 
 void AShooterWeapon::DetachMeshFromPawn()
 {
-	MeshComp->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
-	MeshComp->SetHiddenInGame(true);
-	UE_LOG(LogTemp, Log, TEXT("Set Hidden %s"), *MeshComp->GetName());
+	Mesh1P->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+	Mesh1P->SetHiddenInGame(true);
+	//UE_LOG(LogTemp, Log, TEXT("Set Hidden %s"), *MeshComp->GetPathName());
 
-	//Mesh3P->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
-	//Mesh3P->SetHiddenInGame(true);
+	Mesh3P->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+	Mesh3P->SetHiddenInGame(true);
 }
 
 void AShooterWeapon::OnUnEquip()
@@ -378,12 +398,12 @@ void AShooterWeapon::PlayFireEffects(FVector TraceEnd)
 {
 	if (MuzzleEffect)
 	{
-		MuzzlePSC = UGameplayStatics::SpawnEmitterAttached(MuzzleEffect, MeshComp, MuzzleSocketName);
+		MuzzlePSC = UGameplayStatics::SpawnEmitterAttached(MuzzleEffect, GetWeaponMesh(), MuzzleSocketName);
 	}
 
 	if (TracerEffect)
 	{
-		FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
+		FVector MuzzleLocation = GetWeaponMesh()->GetSocketLocation(MuzzleSocketName);
 
 		UParticleSystemComponent* TracerComp = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), TracerEffect, MuzzleLocation);
 		if (TracerComp)
@@ -419,7 +439,7 @@ void AShooterWeapon::PlayImpactEffects(EPhysicalSurface SurfaceType, FVector Imp
 
 	if (SelectedEffect)
 	{
-		FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
+		FVector MuzzleLocation = GetWeaponMesh()->GetSocketLocation(MuzzleSocketName);
 
 		FVector ShotDirection = ImpactPoint - MuzzleLocation;
 		ShotDirection.Normalize();

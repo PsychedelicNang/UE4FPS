@@ -40,9 +40,29 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
 	Mesh1PComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh"));
 	Mesh1PComp->SetupAttachment(CameraComp);
-	Mesh1PComp->CastShadow = false;
+	Mesh1PComp->CastShadow = true;
+	Mesh1PComp->bOnlyOwnerSee = true;
+	Mesh1PComp->bOwnerNoSee = false;
+	Mesh1PComp->bCastDynamicShadow = false;
+	Mesh1PComp->bReceivesDecals = false;
+	Mesh1PComp->MeshComponentUpdateFlag = EMeshComponentUpdateFlag::OnlyTickPoseWhenRendered;
+	Mesh1PComp->PrimaryComponentTick.TickGroup = TG_PrePhysics;
 	Mesh1PComp->RelativeRotation = FRotator(0.0f, -90.0f, 0.0f);
 	Mesh1PComp->RelativeLocation = FVector(0, 0, -150.0f);
+
+	GetMesh()->bOnlyOwnerSee = false;
+	GetMesh()->bOwnerNoSee = true;
+	GetMesh()->bReceivesDecals = false;
+	//GetMesh()->CastShadow = true;
+	//GetMesh()->bCastDynamicShadow = true;
+	//GetMesh()->bCastHiddenShadow = true;
+	//GetMesh()->bAffectDistanceFieldLighting = true; // ?
+	GetMesh()->SetCollisionObjectType(ECC_Pawn);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetMesh()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Block);
+	//GetMesh()->SetCollisionResponseToChannel(COLLISION_PROJECTILE, ECR_Block);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+
 
 	//// Create a gun mesh component
 	//GunMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun"));
@@ -51,10 +71,12 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Ignore);
 
 	ZoomedFOV = 65.0f;
 	ZoomedInterpSpeed = 20.0f;
+	DefaultFOV = 90.0f;
 
 	HealthComp = CreateDefaultSubobject<UShooterHealthComponent>(TEXT("HealthComp"));
 
@@ -69,6 +91,8 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 	InteractableDistance = 100.0f;
 
 	LaunchStrength = 1000.0f;
+
+	CurrentLootBag = nullptr;
 }
 
 // Called every frame
@@ -89,13 +113,14 @@ void AShooterCharacter::Tick(float DeltaTime)
 		SetRunning(false, false);
 	}
 
-	//float TargetFOV = bWantsToZoom ? ZoomedFOV : DefaultFOV;
-	//
-	//float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaTime, ZoomedInterpSpeed);
-	//
-	//CameraComp->SetFieldOfView(NewFOV);
+	if (CameraComp)
+	{
+		float TargetFOV = bIsTargeting ? ZoomedFOV : DefaultFOV;
 
-	//if (Dot())
+		float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaTime, ZoomedInterpSpeed);
+
+		CameraComp->SetFieldOfView(NewFOV);
+	}
 
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (PlayerController && !bIsCarryingLootBag && CurrentLootBag == nullptr)
@@ -181,6 +206,14 @@ void AShooterCharacter::Tick(float DeltaTime)
 	}
 }
 
+
+void AShooterCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	//SpawnDefaultInventory();
+}
+
 // Called when the game starts or when spawned
 void AShooterCharacter::BeginPlay()
 {
@@ -192,6 +225,8 @@ void AShooterCharacter::BeginPlay()
 	{
 		HealthComp->OnHealthChanged.AddDynamic(this, &AShooterCharacter::OnHealthChanged);
 	}
+
+	SpawnDefaultInventory();
 
 	//if (Role == ROLE_Authority)
 	//{
@@ -485,15 +520,25 @@ void AShooterCharacter::EquipWeapon(AShooterWeapon* Weapon)
 		}
 		else
 		{
-//			ServerEquipWeapon(Weapon);
+			ServerEquipWeapon(Weapon);
 		}
 	}
 }
 
+bool AShooterCharacter::ServerEquipWeapon_Validate(AShooterWeapon* Weapon)
+{
+	return true;
+}
+
+void AShooterCharacter::ServerEquipWeapon_Implementation(AShooterWeapon* Weapon)
+{
+	EquipWeapon(Weapon);
+}
+
 USkeletalMeshComponent* AShooterCharacter::GetSpecifcPawnMesh(bool WantFirstPerson) const
 {
-	return Mesh1PComp;
-	//return WantFirstPerson == true ? Mesh1P : GetMesh();
+	//return Mesh1PComp;
+	return WantFirstPerson == true ? Mesh1PComp : GetMesh();
 }
 
 float AShooterCharacter::GetCarryingLootBagSpeedModifier() const
@@ -745,17 +790,15 @@ void AShooterCharacter::StopAnimMontage(class UAnimMontage* AnimMontage)
 	}
 }
 
-void AShooterCharacter::PostInitializeComponents()
+bool AShooterCharacter::IsFirstPerson() const
 {
-	Super::PostInitializeComponents();
-	
-	SpawnDefaultInventory();
+	return /*IsAlive() &&*/ Controller && Controller->IsLocalPlayerController();
 }
 
 USkeletalMeshComponent* AShooterCharacter::GetPawnMesh() const
 {
-	return Mesh1PComp;
-	//return IsFirstPerson() ? Mesh1P : GetMesh();
+	//return Mesh1PComp;
+	return IsFirstPerson() ? Mesh1PComp : GetMesh();
 }
 
 FVector AShooterCharacter::GetPawnViewLocation() const
@@ -770,14 +813,24 @@ FVector AShooterCharacter::GetPawnViewLocation() const
 	}
 }
 
+void AShooterCharacter::OnRep_CurrentWeapon(AShooterWeapon* LastWeapon)
+{
+	SetCurrentWeapon(CurrentWeapon, LastWeapon);
+}
+
 void AShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	// only to local owner: weapon change requests are locally instigated, other clients don't need it
+	DOREPLIFETIME_CONDITION(AShooterCharacter, Inventory, COND_OwnerOnly);
+
 	DOREPLIFETIME(AShooterCharacter, CurrentWeapon);
 	DOREPLIFETIME(AShooterCharacter, bDied);
+	DOREPLIFETIME(AShooterCharacter, CurrentLootBag);
 
 	DOREPLIFETIME_CONDITION(AShooterCharacter, bWantsToRun, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(AShooterCharacter, bIsCarryingLootBag, COND_SkipOwner);
 }
 
 float AShooterCharacter::GetTargetingSpeedModifier() const
@@ -789,3 +842,13 @@ float AShooterCharacter::GetRunningSpeedModifier() const
 {
 	return RunningSpeedModifier;
 }
+
+FRotator AShooterCharacter::GetAimOffsets() const
+{
+	const FVector AimDirWS = GetBaseAimRotation().Vector();
+	const FVector AimDirLS = ActorToWorld().InverseTransformVectorNoScale(AimDirWS);
+	const FRotator AimRotLS = AimDirLS.Rotation();
+
+	return AimRotLS;
+}
+

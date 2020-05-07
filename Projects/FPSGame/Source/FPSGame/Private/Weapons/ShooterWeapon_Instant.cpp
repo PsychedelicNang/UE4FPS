@@ -25,9 +25,8 @@ void AShooterWeapon_Instant::FireWeapon()
 		//// Bullet spread
 		//float HalfRad = FMath::DegreesToRadians(BulletSpread);
 		//ShotDirection = FMath::VRandCone(ShotDirection, HalfRad, HalfRad);
-
-		FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
-		FVector ShotDirection = MeshComp->GetSocketRotation(MuzzleSocketName).Vector();
+		FVector MuzzleLocation = GetWeaponMesh()->GetSocketLocation(MuzzleSocketName);
+		FVector ShotDirection = GetWeaponMesh()->GetSocketRotation(MuzzleSocketName).Vector();
 		FVector TraceEnd = MuzzleLocation + (ShotDirection * InstantConfig.WeaponRange);
 
 		FCollisionQueryParams QueryParams;

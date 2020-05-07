@@ -60,9 +60,8 @@ void AShooterWeapon_Projectile::FireWeapon()
 	//}
 
 	//ServerFireProjectile(Origin, ShootDir);
-
-	FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
-	FVector ShotDirection = MeshComp->GetSocketRotation(MuzzleSocketName).Vector();
+	FVector MuzzleLocation = GetWeaponMesh()->GetSocketLocation(MuzzleSocketName);
+	FVector ShotDirection = GetWeaponMesh()->GetSocketRotation(MuzzleSocketName).Vector();
 	FTransform SpawnTM(ShotDirection.Rotation(), MuzzleLocation);
 	AShooterProjectile* Projectile = Cast<AShooterProjectile>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, ProjectileConfig.ProjectileClass, SpawnTM));
 	if (Projectile)

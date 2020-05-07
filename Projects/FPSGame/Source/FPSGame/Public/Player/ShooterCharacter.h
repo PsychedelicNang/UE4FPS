@@ -33,6 +33,10 @@ public:
 
 protected:
 
+	/** get aim offsets */
+	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
+		FRotator GetAimOffsets() const;
+
 	/** Pawn mesh: 1st person view  */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
 		USkeletalMeshComponent* Mesh1PComp;
@@ -58,7 +62,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.1, ClampMax = 100.0f))
 		float ZoomedInterpSpeed;
 
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Inventory)
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Inventory, ReplicatedUsing = OnRep_CurrentWeapon)
 	class AShooterWeapon* CurrentWeapon;
 
 	/** modifier for max movement speed */
@@ -85,6 +89,7 @@ protected:
 	UPROPERTY(Transient, Replicated)
 		TArray<class AShooterWeapon*> Inventory;
 
+	UPROPERTY(Transient, Replicated)
 	class ALootBag* CurrentLootBag;
 
 	UPROPERTY(Transient, Replicated)
@@ -94,7 +99,8 @@ protected:
 	bool bIsTargeting;
 	bool bWantsToFire;
 
-	bool bIsCarryingLootBag;
+	UPROPERTY(Transient, Replicated)
+		uint8 bIsCarryingLootBag : 1;
 
 	bool bCanInteractWithObj;
 
@@ -214,6 +220,11 @@ protected:
 	void OnThrowItem();
 
 public:
+	/** get camera view type */
+	UFUNCTION(BlueprintCallable, Category = Mesh)
+		virtual bool IsFirstPerson() const;
+
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -264,6 +275,14 @@ public:
 
 	/** get weapon attach point */
 	FName GetLootBagAttachPoint() const;
+
+	/** equip weapon */
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerEquipWeapon(class AShooterWeapon* NewWeapon);
+
+	/** current weapon rep handler */
+	UFUNCTION()
+		void OnRep_CurrentWeapon(class AShooterWeapon* LastWeapon);
 
 	/*
 * Get either first or third person mesh.

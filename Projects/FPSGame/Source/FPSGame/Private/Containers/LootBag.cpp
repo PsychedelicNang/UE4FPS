@@ -40,6 +40,9 @@ ALootBag::ALootBag()
 	PrimComp = Cast<UPrimitiveComponent>(GetComponentByClass(UPrimitiveComponent::StaticClass()));
 	PrimComp->SetSimulatePhysics(true);
 	PrimComp->SetMassOverrideInKg(NAME_None, GetMassOfBagInKg(), true);
+	bReplicateMovement = true;
+
+	SetReplicates(true);
 }
 
 // Called when the game starts or when spawned
