@@ -33,11 +33,14 @@ AShooterWeapon::AShooterWeapon(const FObjectInitializer& ObjectInitializer) : Su
 	TracerTargetName = "BeamEnd";
 
 	MagazineCapacity = WeaponConfig.AmmoPerClip;
+	
+	PrimaryActorTick.bCanEverTick = true;
 
 	SetReplicates(true);
 
 	NetUpdateFrequency = 66.0f;
 	MinNetUpdateFrequency = 33.0f;
+	ADSAmount = 0.0;
 }
 
 void AShooterWeapon::BeginPlay()
@@ -54,6 +57,17 @@ void AShooterWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (MyPawn)
+	{
+		if (MyPawn->IsTargeting())
+		{
+			ADSAmount = FMath::Clamp(ADSAmount + (1 / WeaponConfig.AimDownSightTime) * DeltaTime, 0.f, 1.f);
+		}
+		else
+		{
+			ADSAmount = FMath::Clamp(ADSAmount - (1 / WeaponConfig.AimDownSightTime) * DeltaTime, 0.f, 1.f);
+		}
+	}
 }
 
 EWeaponState::Type AShooterWeapon::GetCurrentState() const
@@ -83,6 +97,11 @@ bool AShooterWeapon::IsAttachedToPawn() const
 {
 	return  bIsEquipped || bPendingEquip;
 	//return bIsEquipped || bPendingEquip;
+}
+
+float AShooterWeapon::GetADSAmount() const
+{
+	return ADSAmount;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -273,8 +292,8 @@ float AShooterWeapon::PlayWeaponAnimation(const FWeaponAnim& Animation)
 	
 	if (MyPawn)
 	{
-		UAnimMontage* UseAnim = Animation.Pawn1P;
-		//UAnimMontage* UseAnim = MyPawn->IsFirstPerson() ? Animation.Pawn1P : Animation.Pawn3P;
+		//UAnimMontage* UseAnim = Animation.Pawn1P;
+		UAnimMontage* UseAnim = MyPawn->IsFirstPerson() ? Animation.Pawn1P : Animation.Pawn3P;
 		if (UseAnim)
 		{
 			Duration = MyPawn->PlayAnimMontage(UseAnim);
@@ -473,4 +492,5 @@ void AShooterWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(AShooterWeapon, HitScanTrace, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(AShooterWeapon, ADSAmount, COND_SkipOwner);
 }

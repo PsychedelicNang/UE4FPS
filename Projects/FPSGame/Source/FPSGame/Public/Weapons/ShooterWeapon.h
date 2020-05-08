@@ -82,6 +82,10 @@ struct FWeaponData
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 		float NoAnimReloadDuration;
 
+	/** the time it takes to fully aim down sight with this weapon */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		float AimDownSightTime;
+
 	/** defaults */
 	FWeaponData()
 	{
@@ -92,6 +96,7 @@ struct FWeaponData
 		InitialClips = 8;
 		TimeBetweenShots = 0.2f;
 		NoAnimReloadDuration = 1.0f;
+		AimDownSightTime = 0.0f;
 	}
 };
 
@@ -99,7 +104,10 @@ UCLASS(Abstract, Blueprintable)
 class FPSGAME_API AShooterWeapon : public AActor
 {
 	GENERATED_UCLASS_BODY()
-	
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon", Replicated)
+	float ADSAmount;
+
 //public:	
 //	// Sets default values for this actor's properties
 //	AShooterWeapon();
@@ -266,4 +274,8 @@ public:
 	virtual void OnLeaveInventory();
 
 	bool IsAttachedToPawn() const;
+
+	/** get firing state */
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+		float GetADSAmount () const;
 };

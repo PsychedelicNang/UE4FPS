@@ -96,11 +96,14 @@ protected:
 	uint8 bWantsToRun : 1;
 
 	bool bWantsToRunToggled;
-	bool bIsTargeting;
-	bool bWantsToFire;
 
 	UPROPERTY(Transient, Replicated)
-		uint8 bIsCarryingLootBag : 1;
+	uint8 bIsTargeting : 1;
+
+	uint8 bWantsToFire;
+
+	UPROPERTY(Transient, Replicated)
+	uint8 bIsCarryingLootBag : 1;
 
 	bool bCanInteractWithObj;
 
@@ -146,6 +149,10 @@ protected:
 
 	///** [server + local] change targeting state */
 	void SetTargeting(bool bNewTargeting);
+
+	/** update targeting state */
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerSetTargeting(bool bNewTargeting);
 
 	/** player pressed targeting action */
 	void OnStartTargeting();

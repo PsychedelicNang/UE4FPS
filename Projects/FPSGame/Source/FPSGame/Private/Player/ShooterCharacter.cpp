@@ -47,8 +47,14 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 	Mesh1PComp->bReceivesDecals = false;
 	Mesh1PComp->MeshComponentUpdateFlag = EMeshComponentUpdateFlag::OnlyTickPoseWhenRendered;
 	Mesh1PComp->PrimaryComponentTick.TickGroup = TG_PrePhysics;
-	Mesh1PComp->RelativeRotation = FRotator(0.0f, -90.0f, 0.0f);
-	Mesh1PComp->RelativeLocation = FVector(0, 0, -150.0f);
+	Mesh1PComp->RelativeRotation = FRotator(2.0f, -15.0f, 5.0f);
+	Mesh1PComp->RelativeLocation = FVector(0, 0, -155.0f);
+
+
+	//*Correct location for ShooterGame Character Assets!**//
+	//Mesh1PComp->RelativeRotation = FRotator(0.0f, -90.0f, 0.0f);
+	//Mesh1PComp->RelativeLocation = FVector(0, 0, -150.0f);
+	//***//
 
 	GetMesh()->bOnlyOwnerSee = false;
 	GetMesh()->bOwnerNoSee = true;
@@ -711,8 +717,18 @@ void AShooterCharacter::SetTargeting(bool bNewTargeting)
 
 	if (Role < ROLE_Authority)
 	{
-		//ServerSetTargeting(bNewTargeting);
+		ServerSetTargeting(bNewTargeting);
 	}
+}
+
+bool AShooterCharacter::ServerSetTargeting_Validate(bool bNewTargeting)
+{
+	return true;
+}
+
+void AShooterCharacter::ServerSetTargeting_Implementation(bool bNewTargeting)
+{
+	SetTargeting(bNewTargeting);
 }
 
 void AShooterCharacter::SetRunning(bool bNewRunning, bool bToggle)
@@ -829,6 +845,7 @@ void AShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(AShooterCharacter, bDied);
 	DOREPLIFETIME(AShooterCharacter, CurrentLootBag);
 
+	DOREPLIFETIME_CONDITION(AShooterCharacter, bIsTargeting, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(AShooterCharacter, bWantsToRun, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(AShooterCharacter, bIsCarryingLootBag, COND_SkipOwner);
 }
