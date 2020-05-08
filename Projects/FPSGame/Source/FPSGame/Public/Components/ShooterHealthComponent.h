@@ -53,6 +53,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "HealthComponent")
 		void Heal(float HealAmount);
 
+	UFUNCTION(BlueprintCallable, Category = "HealthComponent")
+		void KillSelf();
+
 	float GetHealth() const;
 	TArray<int32> GetHealthPartitions() const;
 	int GetHealthPartitionIndex() const;

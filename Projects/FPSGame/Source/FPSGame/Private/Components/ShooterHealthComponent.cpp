@@ -3,6 +3,7 @@
 
 #include "Components/ShooterHealthComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values for this component's properties
 UShooterHealthComponent::UShooterHealthComponent()
@@ -107,6 +108,16 @@ void UShooterHealthComponent::Heal(float HealAmount)
 	UE_LOG(LogTemp, Log, TEXT("Health Changed: %s (+%s)"), *FString::SanitizeFloat(Health), *FString::SanitizeFloat(HealAmount));
 
 	OnHealthChanged.Broadcast(this, Health, -HealAmount, nullptr, nullptr, nullptr);
+}
+
+void UShooterHealthComponent::KillSelf()
+{
+	float Damage = Health;
+	Health = 0.0f;
+	bIsDead = Health <= 0.0f;
+
+	AActor* MyOwner = GetOwner();
+	OnHealthChanged.Broadcast(this, Health, Damage, nullptr, UGameplayStatics::GetPlayerController(MyOwner, 0), MyOwner);
 }
 
 float UShooterHealthComponent::GetHealth() const
