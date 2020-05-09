@@ -233,30 +233,6 @@ void AShooterCharacter::BeginPlay()
 	}
 
 	SpawnDefaultInventory();
-
-	//if (Role == ROLE_Authority)
-	//{
-	//	// Spawn a default weapon
-	//	FActorSpawnParameters SpawnParams;
-	//	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	//	if (!StarterWeaponClass)
-	//	{
-	//		return;
-	//	}
-
-	//	CurrentWeapon = GetWorld()->SpawnActor<AShooterWeapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-	//	if (CurrentWeapon)
-	//	{
-	//		CurrentWeapon->SetOwningPawn(this);
-	//		CurrentWeapon->AttachToComponent(Mesh1PComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
-	//		CurrentWeapon->OnWeaponFired.AddDynamic(this, &AShooterCharacter::HandleOnWeaponFired);
-	//	}
-	//}
-
-	
-
-	
 }
 
 void AShooterCharacter::MoveForward(float Value)
@@ -443,27 +419,6 @@ void AShooterCharacter::SpawnDefaultInventory()
 			Inventory[i]->OnUnEquip();
 		}
 	}
-
-
-	//if (Role == ROLE_Authority)
-	//{
-	//	// Spawn a default weapon
-	//	FActorSpawnParameters SpawnParams;
-	//	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	//	if (!StarterWeaponClass)
-	//	{
-	//		return;
-	//	}
-
-	//	CurrentWeapon = GetWorld()->SpawnActor<AShooterWeapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-	//	if (CurrentWeapon)
-	//	{
-	//		CurrentWeapon->SetOwningPawn(this);
-	//		CurrentWeapon->AttachToComponent(Mesh1PComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
-	//		CurrentWeapon->OnWeaponFired.AddDynamic(this, &AShooterCharacter::HandleOnWeaponFired);
-	//	}
-	//}
 }
 
 void AShooterCharacter::DestroyInventory()

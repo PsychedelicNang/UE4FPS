@@ -174,14 +174,6 @@ void AShooterWeapon::AttachMeshToPawn()
 		// For locally controller players we attach both weapons and let the bOnlyOwnerSee, bOwnerNoSee flags deal with visibility.
 		FName AttachPoint = MyPawn->GetWeaponAttachPoint();
 
-		//UE_LOG(LogTemp, Log, TEXT("Health Changed: %s"), *AttachPoint.ToString());
-
-		//USkeletalMeshComponent* PawnMesh1p = MyPawn->GetSpecifcPawnMesh(true);
-		////USkeletalMeshComponent* PawnMesh3p = MyPawn->GetSpecifcPawnMesh(false);
-		//MeshComp->SetHiddenInGame(false);
-		////Mesh3P->SetHiddenInGame(false);
-		//bool result = MeshComp->AttachToComponent(PawnMesh1p, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
-
 		if (MyPawn->IsLocallyControlled() == true)
 		{
 			USkeletalMeshComponent* PawnMesh1p = MyPawn->GetSpecifcPawnMesh(true);
@@ -190,45 +182,13 @@ void AShooterWeapon::AttachMeshToPawn()
 			Mesh3P->SetHiddenInGame(false);
 			Mesh1P->AttachToComponent(PawnMesh1p, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
 			Mesh3P->AttachToComponent(PawnMesh3p, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
-			
-			//UE_LOG(LogTemp, Log, TEXT("IsLocallyControlled"));
-
-			//FTransform trans = MeshComp->GetRelativeTransform();
-			//FString location = trans.GetLocation().ToString();
-			//UE_LOG(LogTemp, Log, TEXT("IsLocallyControlled %s"), *location);
-			//if (result)
-			//{
-			//	UE_LOG(LogTemp, Log, TEXT("Attached"));
-			//	UE_LOG(LogTemp, Log, TEXT("Set Hidden %s"), *MeshComp->GetPathName());
-
-			//}
-			//else
-			//{
-			//	UE_LOG(LogTemp, Log, TEXT("Not"));
-			//	UE_LOG(LogTemp, Log, TEXT("Set Hidden %s"), *MeshComp->GetPathName());
-			//}
 		}
 		else
 		{
 			USkeletalMeshComponent* UseWeaponMesh = GetWeaponMesh();
-			//USkeletalMeshComponent* UsePawnMesh = MyPawn->GetSpecifcPawnMesh(true);
 			USkeletalMeshComponent* UsePawnMesh = MyPawn->GetPawnMesh();
-			bool result = UseWeaponMesh->AttachToComponent(UsePawnMesh, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
+			UseWeaponMesh->AttachToComponent(UsePawnMesh, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
 			UseWeaponMesh->SetHiddenInGame(false);
-			//FTransform trans = MeshComp->GetRelativeTransform();
-			//FString location = trans.GetLocation().ToString();
-			//UE_LOG(LogTemp, Log, TEXT("NOT - IsLocallyControlled %s"), *location);
-
-			//if (result)
-			//{
-			//	UE_LOG(LogTemp, Log, TEXT("Attached (else)"));
-			//	UE_LOG(LogTemp, Log, TEXT("Set Hidden %s"), *MeshComp->GetPathName());
-			//}
-			//else
-			//{
-			//	UE_LOG(LogTemp, Log, TEXT("Not (else)"));
-			//	UE_LOG(LogTemp, Log, TEXT("Set Hidden %s"), *MeshComp->GetPathName());
-			//}
 		}
 	}
 }
@@ -243,7 +203,6 @@ void AShooterWeapon::DetachMeshFromPawn()
 {
 	Mesh1P->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
 	Mesh1P->SetHiddenInGame(true);
-	//UE_LOG(LogTemp, Log, TEXT("Set Hidden %s"), *MeshComp->GetPathName());
 
 	Mesh3P->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
 	Mesh3P->SetHiddenInGame(true);
@@ -292,12 +251,20 @@ float AShooterWeapon::PlayWeaponAnimation(const FWeaponAnim& Animation)
 	
 	if (MyPawn)
 	{
-		//UAnimMontage* UseAnim = Animation.Pawn1P;
 		UAnimMontage* UseAnim = MyPawn->IsFirstPerson() ? Animation.Pawn1P : Animation.Pawn3P;
 		if (UseAnim)
 		{
+			UE_LOG(LogTemp, Log, TEXT("Play - UseAnim was good! %s"), (MyPawn->IsFirstPerson() ? TEXT("True") : TEXT("False")));
 			Duration = MyPawn->PlayAnimMontage(UseAnim);
 		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("Play - UseAnim was null! %s"), (MyPawn->IsFirstPerson() ? TEXT("True") : TEXT("False")));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("Play - Pawn was null !%s"), (MyPawn->IsFirstPerson() ? TEXT("True") : TEXT("False")));
 	}
 
 	return Duration;
@@ -307,13 +274,22 @@ void AShooterWeapon::StopWeaponAnimation(const FWeaponAnim& Animation)
 {
 	if (MyPawn)
 	{
-		UAnimMontage* UseAnim = Animation.Pawn1P;
+		//UAnimMontage* UseAnim = Animation.Pawn1P;
 
-		//UAnimMontage* UseAnim = MyPawn->IsFirstPerson() ? Animation.Pawn1P : Animation.Pawn3P;
+		UAnimMontage* UseAnim = MyPawn->IsFirstPerson() ? Animation.Pawn1P : Animation.Pawn3P;
 		if (UseAnim)
 		{
+			UE_LOG(LogTemp, Log, TEXT("Stop - UseAnim was good! %s"), (MyPawn->IsFirstPerson() ? TEXT("True") : TEXT("False")));
 			MyPawn->StopAnimMontage(UseAnim);
 		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("Stop - UseAnim was null! %s"), (MyPawn->IsFirstPerson() ? TEXT("True") : TEXT("False")));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("Stop - Pawn was null !%s"), (MyPawn->IsFirstPerson() ? TEXT("True") : TEXT("False")));
 	}
 }
 
@@ -484,6 +460,7 @@ void AShooterWeapon::OnRep_HitScanTrace()
 
 	PlayFireEffects(HitScanTrace.TraceTo);
 	PlayImpactEffects(HitScanTrace.SurfaceType, HitScanTrace.TraceTo);
+	PlayWeaponAnimation(FireAnim);
 }
 
 
