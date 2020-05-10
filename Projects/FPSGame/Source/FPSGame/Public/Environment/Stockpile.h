@@ -7,6 +7,7 @@
 #include "Stockpile.generated.h"
 
 class ALootBag;
+class AShooterCharacter;
 
 /**
  * 
@@ -23,6 +24,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 		uint8 NumLootBagsToSpawn;
 
+	UPROPERTY(replicated)
 	TArray<ALootBag*> LootBagPool;
 
 public:
@@ -30,5 +32,8 @@ public:
 
 	virtual void BeginPlay() override;
 
-	ALootBag* GetLootBagFromPile();
+	void GetLootBagFromPile(AShooterCharacter* Requester);
+
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerRequestLootBag(AShooterCharacter* Requester);
 };

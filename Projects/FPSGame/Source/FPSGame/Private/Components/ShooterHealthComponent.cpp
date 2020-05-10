@@ -110,6 +110,7 @@ void UShooterHealthComponent::Heal(float HealAmount)
 	OnHealthChanged.Broadcast(this, Health, -HealAmount, nullptr, nullptr, nullptr);
 }
 
+// For testing only! Remove in official builds...
 void UShooterHealthComponent::KillSelf()
 {
 	float Damage = Health;

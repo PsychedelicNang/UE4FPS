@@ -142,7 +142,7 @@ void AShooterWeapon::OnEquip(const AShooterWeapon* LastWeapon)
 
 void AShooterWeapon::OnEquipFinished()
 {
-	AttachMeshToPawn();
+	//AttachMeshToPawn();
 
 	bIsEquipped = true;
 	bPendingEquip = false;
@@ -190,6 +190,8 @@ void AShooterWeapon::AttachMeshToPawn()
 			UseWeaponMesh->AttachToComponent(UsePawnMesh, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
 			UseWeaponMesh->SetHiddenInGame(false);
 		}
+
+		UE_LOG(LogTemp, Log, TEXT("Switched weapon %s"), (Role == ROLE_Authority) ? TEXT("True") : TEXT("False"));
 	}
 }
 
@@ -254,10 +256,8 @@ float AShooterWeapon::PlayWeaponAnimation(const FWeaponAnim& Animation)
 		UAnimMontage* UseAnim = MyPawn->IsFirstPerson() ? Animation.Pawn1P : Animation.Pawn3P;
 		if (UseAnim)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Play - UseAnim was good! %s"), (MyPawn->IsFirstPerson() ? TEXT("True") : TEXT("False")));
 			Duration = MyPawn->PlayAnimMontage(UseAnim);
 		}
-		else
 		{
 			UE_LOG(LogTemp, Log, TEXT("Play - UseAnim was null! %s"), (MyPawn->IsFirstPerson() ? TEXT("True") : TEXT("False")));
 		}
@@ -279,7 +279,6 @@ void AShooterWeapon::StopWeaponAnimation(const FWeaponAnim& Animation)
 		UAnimMontage* UseAnim = MyPawn->IsFirstPerson() ? Animation.Pawn1P : Animation.Pawn3P;
 		if (UseAnim)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Stop - UseAnim was good! %s"), (MyPawn->IsFirstPerson() ? TEXT("True") : TEXT("False")));
 			MyPawn->StopAnimMontage(UseAnim);
 		}
 		else

@@ -17,8 +17,16 @@ class FPSGAME_API AShooterGameMode : public AGameModeBase
 protected:
 	class APlayerExtraction* PlayerExtraction;
 	class ALootExtraction* LootExtraction;
+	class AStockpile* Stockpile;
 
+	///** default inventory list */
+	//UPROPERTY(EditDefaultsOnly, Category = "Objectives")
+	//	TSubclassOf<class AStockpile> StockpilePrefab;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Game Rules")
 	uint8 NumPlayersRequiredToExtract;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Game Rules")
 	uint8 NumLootBagsRequiredToExtract;
 
 protected:

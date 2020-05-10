@@ -112,4 +112,13 @@ public:
 	void StopMovementAndDrop();
 
 	FVector GetMeshExtents() const;
+
+	/** equip weapon */
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerEquipLootBag();
+
+	/** equip weapon */
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerLaunchItem(FVector LaunchVelocity);
+
 };

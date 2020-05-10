@@ -9,12 +9,13 @@
 #include "Components/PrimitiveComponent.h"
 #include "DrawDebugHelpers.h"
 #include "TimerManager.h"
+#include "..\..\Public\Containers\LootBag.h"
 
 // Sets default values
 ALootBag::ALootBag()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
@@ -98,17 +99,8 @@ void ALootBag::DetachMeshFromPawn()
 {
 	MeshComp->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 
-	//SetActorLocation(Location);
 	PrimComp->SetSimulatePhysics(true);
 	MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-
-	//PrimComp->SetSimulatePhysics(true);
-	//MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-
-	//MeshComp->SetHiddenInGame(true);
-
-	//Mesh3P->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
-	//Mesh3P->SetHiddenInGame(true);
 }
 
 void ALootBag::OnEnterInventory(AShooterCharacter* NewOwner)
@@ -141,10 +133,27 @@ float ALootBag::GetMassOfBagInKg() const
 
 void ALootBag::LaunchItem(FVector LaunchVelocity)
 {
-	if (PrimComp)
+	if (Role == ROLE_Authority)
 	{
-		PrimComp->AddImpulse(LaunchVelocity, NAME_None, true);
+		if (PrimComp)
+		{
+			PrimComp->AddImpulse(LaunchVelocity, NAME_None, true);
+		}
 	}
+	else
+	{
+		ServerLaunchItem(LaunchVelocity);
+	}
+}
+
+bool ALootBag::ServerLaunchItem_Validate(FVector LaunchVelocity)
+{
+	return true;
+}
+
+void ALootBag::ServerLaunchItem_Implementation(FVector LaunchVelocity)
+{
+	LaunchItem(LaunchVelocity);
 }
 
 void ALootBag::StopMovementAndDrop()
@@ -215,11 +224,34 @@ void ALootBag::SetOwningPawn(AShooterCharacter* NewOwner)
 //////////////////////////////////////////////////////////////////////////
 // Inventory
 
+bool ALootBag::ServerEquipLootBag_Validate()
+{
+	return true;
+}
+
+void ALootBag::ServerEquipLootBag_Implementation()
+{
+	OnEquip();
+}
+
 void ALootBag::OnEquip()
 {
-	AttachMeshToPawn();
+	if (Role == ROLE_Authority)
+	{
+		AttachMeshToPawn();
+		bPendingEquip = true;
+		OnEquipFinished();
+	}
+	else
+	{
+		ServerEquipLootBag();
+	}
 
-	bPendingEquip = true;
+
+	//AttachMeshToPawn();
+	//bPendingEquip = true;
+	//OnEquipFinished();
+
 	//DetermineWeaponState();
 
 	//// Only play animation if last weapon is valid
@@ -240,7 +272,7 @@ void ALootBag::OnEquip()
 	//{
 	//	OnEquipFinished();
 	//}
-	OnEquipFinished();
+	//OnEquipFinished();
 
 	//if (MyPawn && MyPawn->IsLocallyControlled())
 	//{
@@ -250,7 +282,7 @@ void ALootBag::OnEquip()
 
 void ALootBag::OnEquipFinished()
 {
-	AttachMeshToPawn();
+	//AttachMeshToPawn();
 
 	bIsEquipped = true;
 	bPendingEquip = false;
@@ -290,11 +322,8 @@ void ALootBag::AttachMeshToPawn()
 		if (MyPawn->IsLocallyControlled() == true)
 		{
 			USkeletalMeshComponent* PawnMesh1p = MyPawn->GetSpecifcPawnMesh(true);
-			//USkeletalMeshComponent* PawnMesh3p = MyPawn->GetSpecifcPawnMesh(false);
 			MeshComp->SetHiddenInGame(false);
-			//Mesh3P->SetHiddenInGame(false);
 			MeshComp->AttachToComponent(PawnMesh1p, FAttachmentTransformRules::SnapToTargetIncludingScale,  AttachPoint);
-			//Mesh3P->AttachToComponent(PawnMesh3p, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
 		}
 		else
 		{
@@ -303,7 +332,10 @@ void ALootBag::AttachMeshToPawn()
 			MeshComp->SetHiddenInGame(false);
 		}
 
+		UE_LOG(LogTemp, Log, TEXT("Grabbed loot bag %s"), (Role == ROLE_Authority) ? TEXT("True") : TEXT("False"));
+
 		//DrawDebugSphere(GetWorld(), GetActorLocation(), 10.0f, 12, FColor::Green, false, 5.0f, 0, 1.0f);
 		//DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(124, -50, 121), 10.0f, 12, FColor::Green, false, 5.0f, 0, 1.0f);
 	}
 }
+

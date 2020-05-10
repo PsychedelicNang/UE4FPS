@@ -113,6 +113,9 @@ protected:
 
 	float LaunchStrength;
 
+	uint8 bIsAttemptingInteract : 1;
+	float InteractHeldTime;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -134,6 +137,10 @@ protected:
 	void EndZoom();
 
 	void Reload();
+
+	void StartInteract();
+
+	void EndInteract();
 
 	/** [server + local] change running state */
 	void SetRunning(bool bNewRunning, bool bToggle);
@@ -187,6 +194,8 @@ protected:
 	/** updates current weapon */
 	void SetCurrentWeapon(class AShooterWeapon* NewWeapon, class AShooterWeapon* LastWeapon = nullptr);
 
+	void SetCurrentLootBag(ALootBag* LootBag);
+
 	//////////////////////////////////////////////////////////////////////////
 	// Inventory
 
@@ -218,13 +227,22 @@ protected:
 	*/
 	void EquipWeapon(class AShooterWeapon* Weapon);
 
+	/**
+* [server + local] equips weapon from inventory
+*
+* @param Weapon	Weapon to equip
+*/public:
+	void EquipLootBag(class ALootBag* LootBag);
+	protected:
 	/** player pressed next weapon action */
 	void OnNextWeapon();
 
 	/** player pressed prev weapon action */
 	void OnPrevWeapon();
 
-	void OnThrowItem();
+	void OnThrowItem(FVector CamLoc, FRotator CamRot);
+
+	void OnThrowPressed();
 
 public:
 	/** get camera view type */
@@ -291,6 +309,17 @@ public:
 	UFUNCTION()
 		void OnRep_CurrentWeapon(class AShooterWeapon* LastWeapon);
 
+	/** equip weapon */
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerEquipLootBag(class ALootBag* LootBag);
+
+	/** current weapon rep handler */
+	UFUNCTION()
+		void OnRep_CurrentLootBag(class ALootBag* LootBag);
+
+	/** equip weapon */
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerThrowItem(FVector CamLoc, FRotator CamRot);
 	/*
 * Get either first or third person mesh.
 *

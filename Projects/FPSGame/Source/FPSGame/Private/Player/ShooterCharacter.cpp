@@ -101,6 +101,29 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 	CurrentLootBag = nullptr;
 }
 
+void AShooterCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	//SpawnDefaultInventory();
+}
+
+// Called when the game starts or when spawned
+void AShooterCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	//DefaultFOV = CameraComp->FieldOfView;
+
+	if (HealthComp)
+	{
+		HealthComp->OnHealthChanged.AddDynamic(this, &AShooterCharacter::OnHealthChanged);
+	}
+
+	SpawnDefaultInventory();
+}
+
+
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
@@ -109,7 +132,7 @@ void AShooterCharacter::Tick(float DeltaTime)
 	if (!IsLocallyControlled())
 	{
 		FRotator NewRot = CameraComp->RelativeRotation;
-		NewRot.Pitch = RemoteViewPitch * 360.0f/255.0f; // Uncompress RemoteViewPitch
+		NewRot.Pitch = RemoteViewPitch * 360.0f / 255.0f; // Uncompress RemoteViewPitch
 
 		CameraComp->SetRelativeRotation(NewRot);
 	}
@@ -128,16 +151,15 @@ void AShooterCharacter::Tick(float DeltaTime)
 		CameraComp->SetFieldOfView(NewFOV);
 	}
 
-	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	if (PlayerController && !bIsCarryingLootBag && CurrentLootBag == nullptr)
+	if (!bIsCarryingLootBag && CurrentLootBag == nullptr)
 	{
-		bool QuickCheck = PlayerController->IsInputKeyDown(FKey("F"));
-		if (!QuickCheck)
+		if (!bIsAttemptingInteract)
 		{
 			// Don't do anything if the user is not attemping to iteract with something
 			return;
 		}
 
+		APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 		FVector CamLoc;
 		FRotator CamRot;
 		PlayerController->GetPlayerViewPoint(CamLoc, CamRot);
@@ -163,76 +185,26 @@ void AShooterCharacter::Tick(float DeltaTime)
 
 		if (bResult)
 		{
-			float time = PlayerController->GetInputKeyTimeDown(FKey("F"));
-			if (time > 1.0f)
+			InteractHeldTime = PlayerController->GetInputKeyTimeDown(FKey("F"));
+			if (InteractHeldTime > 1.0f)
 			{
-				//bAlreadyGrabbedLootBag = true;
-				//GetWorldTimerManager().SetTimer(TimerHandle_GrabLootBagDelay, this, &AShooterCharacter::OnLootBagDelayFinished, 1.0f, false, 0.0f);
-
 				ALootBag* LootBag = Cast<ALootBag>(Hit.Actor);
 
 				if (LootBag)
 				{
-					CurrentLootBag = LootBag;
-
-					//CurrentWeapon->AttachToComponent(Mesh1PComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachPoint);
-
-					CurrentLootBag->SetOwningPawn(this);	// Make sure weapon's MyPawn is pointing back to us. During replication, we can't guarantee APawn::CurrentWeapon will rep after AWeapon::MyPawn!
-					CurrentLootBag->OnEquip();
-				
-					bIsCarryingLootBag = true;
+					EquipLootBag(LootBag);
 				}
 
 				AStockpile* Stockpile = Cast<AStockpile>(Hit.Actor);
 
 				if (Stockpile)
 				{
-					ALootBag* GrabbedBag = Stockpile->GetLootBagFromPile();
-
-					if (GrabbedBag)
-					{
-						CurrentLootBag = GrabbedBag;
-						
-						CurrentLootBag->SetOwningPawn(this);
-						CurrentLootBag->OnEquip();
-
-						bIsCarryingLootBag = true;
-
-						UE_LOG(LogTemp, Log, TEXT("Grabbed loot bag"));
-					}
+					//UE_LOG(LogTemp, Log, TEXT("Trying loot bag"));
+					Stockpile->GetLootBagFromPile(this);
 				}
 			}
 		}
-
-		//FRotator ActorRot = GetActorRotation();
-		//ActorRot.Pitch = CamRot.Pitch;
-
-		//DrawDebugSphere(GetWorld(), GetActorLocation(), 10.0f, 12, FColor::Green, false, 0.0f, 0, 1.0f);
-		//DrawDebugSphere(GetWorld(), CamLoc + CamRot.RotateVector(FVector(121, 0, 0)), 10.0f, 12, FColor::Green, false, 0.0f, 0, 1.0f);
 	}
-}
-
-
-void AShooterCharacter::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-
-	//SpawnDefaultInventory();
-}
-
-// Called when the game starts or when spawned
-void AShooterCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-
-	//DefaultFOV = CameraComp->FieldOfView;
-
-	if (HealthComp)
-	{
-		HealthComp->OnHealthChanged.AddDynamic(this, &AShooterCharacter::OnHealthChanged);
-	}
-
-	SpawnDefaultInventory();
 }
 
 void AShooterCharacter::MoveForward(float Value)
@@ -357,6 +329,18 @@ void AShooterCharacter::Reload()
 	{
 		CurrentWeapon->StartReload();
 	}
+}
+
+void AShooterCharacter::StartInteract()
+{
+	bIsAttemptingInteract = true;
+	InteractHeldTime = 0.0f;
+}
+
+void AShooterCharacter::EndInteract()
+{
+	bIsAttemptingInteract = false;
+	InteractHeldTime = 0.0f;
 }
 
 void AShooterCharacter::OnHealthChanged(UShooterHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType,
@@ -496,6 +480,51 @@ void AShooterCharacter::ServerEquipWeapon_Implementation(AShooterWeapon* Weapon)
 	EquipWeapon(Weapon);
 }
 
+bool AShooterCharacter::ServerEquipLootBag_Validate(ALootBag* LootBag)
+{
+	return true;
+}
+
+void AShooterCharacter::ServerEquipLootBag_Implementation(ALootBag* LootBag)
+{
+	EquipLootBag(LootBag);
+}
+
+void AShooterCharacter::OnRep_CurrentLootBag(ALootBag * LootBag)
+{
+	SetCurrentLootBag(LootBag);
+}
+
+void AShooterCharacter::EquipLootBag(ALootBag* LootBag)
+{
+	if (LootBag)
+	{
+		if (Role == ROLE_Authority)
+		{
+			SetCurrentLootBag(LootBag);
+		}
+		else
+		{
+			ServerEquipLootBag(LootBag);
+		}
+	}
+}
+
+void AShooterCharacter::SetCurrentLootBag(ALootBag* LootBag)
+{
+	CurrentLootBag = LootBag;
+
+	// equip new one
+	if (CurrentLootBag)
+	{
+		CurrentLootBag->SetOwningPawn(this);	// Make sure weapon's MyPawn is pointing back to us. During replication, we can't guarantee APawn::CurrentWeapon will rep after AWeapon::MyPawn!
+
+		CurrentLootBag->OnEquip();
+	}
+
+	bIsCarryingLootBag = true;
+}
+
 USkeletalMeshComponent* AShooterCharacter::GetSpecifcPawnMesh(bool WantFirstPerson) const
 {
 	//return Mesh1PComp;
@@ -577,27 +606,21 @@ void AShooterCharacter::OnPrevWeapon()
 	//}
 }
 
-void AShooterCharacter::OnThrowItem()
+void AShooterCharacter::OnThrowItem(FVector CamLoc, FRotator CamRot)
 {
-	// Throw the item being carried (Loot Bag)
-
-	if (bIsCarryingLootBag && CurrentLootBag)
+	if (Role == ROLE_Authority)
 	{
-		APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-		if (PlayerController)
-		{
-			// Get the location and rotation of the camera
-			FVector CamLoc;
-			FRotator CamRot;
-			PlayerController->GetPlayerViewPoint(CamLoc, CamRot);
+		// Throw the item being carried (Loot Bag)
 
+		if (bIsCarryingLootBag && CurrentLootBag)
+		{
 			bIsCarryingLootBag = false;
 			CurrentLootBag->OnUnEquip();
 
 			// Make sure to move the CurrentLootBag away from our player since we don't want it to collide with the person throwing it.
 			FVector NewLocation = CamLoc + CamRot.RotateVector(FVector(120, 0, 0));
 			CurrentLootBag->SetActorLocation(NewLocation);
-			
+
 			// Launch the lootbag away from the player relative to the camera's rotation
 			FVector Direction = CamRot.Vector() * LaunchStrength;
 			CurrentLootBag->LaunchItem(Direction);
@@ -605,6 +628,33 @@ void AShooterCharacter::OnThrowItem()
 			CurrentLootBag = nullptr;
 		}
 	}
+	else
+	{
+		ServerThrowItem(CamLoc, CamRot);
+	}
+}
+
+void AShooterCharacter::OnThrowPressed()
+{
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (PlayerController)
+	{
+		// Get the location and rotation of the camera
+		FVector CamLoc;
+		FRotator CamRot;
+		PlayerController->GetPlayerViewPoint(CamLoc, CamRot);
+		OnThrowItem(CamLoc, CamRot);
+	}
+}
+
+bool AShooterCharacter::ServerThrowItem_Validate(FVector CamLoc, FRotator CamRot)
+{
+	return true;
+}
+
+void AShooterCharacter::ServerThrowItem_Implementation(FVector CamLoc, FRotator CamRot)
+{
+	OnThrowItem(CamLoc, CamRot);
 }
 
 // Called to bind functionality to input
@@ -640,7 +690,10 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("NextWeapon", IE_Pressed, this, &AShooterCharacter::OnNextWeapon);
 	PlayerInputComponent->BindAction("PrevWeapon", IE_Pressed, this, &AShooterCharacter::OnPrevWeapon);
 
-	PlayerInputComponent->BindAction("ThrowItem", IE_Pressed, this, &AShooterCharacter::OnThrowItem);
+	PlayerInputComponent->BindAction("ThrowItem", IE_Pressed, this, &AShooterCharacter::OnThrowPressed);
+
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AShooterCharacter::StartInteract);
+	PlayerInputComponent->BindAction("Interact", IE_Released, this, &AShooterCharacter::EndInteract);
 }
 
 void AShooterCharacter::OnStartTargeting()
