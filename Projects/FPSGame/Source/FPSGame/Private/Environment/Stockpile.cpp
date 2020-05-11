@@ -53,77 +53,41 @@ void AStockpile::BeginPlay()
 	UShapeComponent* CollisionComponent = GetCollisionComponent();
 	CollisionComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
 	//CollisionComponent->SetCollisionResponseToChannel()
+
+	SetOwner(GetWorld()->GetFirstPlayerController());
 }
 
 void AStockpile::GetLootBagFromPile(AShooterCharacter* Requester)
 {
 	UE_LOG(LogTemp, Log, TEXT("Getting loot bag %s"), (Role == ROLE_Authority) ? TEXT("True") : TEXT("False"));
 
-	//Instigator = Requester;
-	// net owner for RPC calls
-
-	if (Role == ROLE_Authority)
+	//SetOwner(Requester);
+	
+	if (Role < ROLE_Authority)
 	{
-		SetOwner(Requester);
-		
-		//if (LootBagPool.Num() > 0)
-		//{
-		//	if (Requester)
-		//	{
-		//		UE_LOG(LogTemp, Log, TEXT("Got loot bag %s"), (Role == ROLE_Authority) ? TEXT("True") : TEXT("False"));
-		//		ALootBag* LootBag = LootBagPool.Pop();
-		//		Requester->EquipLootBag(LootBag);
-		//	}
-		//	else
-		//	{
-		//		UE_LOG(LogTemp, Log, TEXT("Shit was NULL man"));
-		//	}
-		//}
-		//else
-		//{
-		//	UE_LOG(LogTemp, Log, TEXT("Shit was empty man"));
-		//}
+		UE_LOG(LogTemp, Log, TEXT("Not server %s"), (Role == ROLE_Authority) ? TEXT("True") : TEXT("False"));
+		// net owner for RPC calls
+		ServerRequestLootBag(Requester);
 	}
-	//else
-	//{
-		if (LootBagPool.Num() > 0)
+
+	if (LootBagPool.Num() > 0)
+	{
+		if (Requester)
 		{
-			if (Requester)
-			{
-				UE_LOG(LogTemp, Log, TEXT("Got loot bag %s"), (Role == ROLE_Authority) ? TEXT("True") : TEXT("False"));
-				ALootBag* LootBag = LootBagPool.Pop();
-				Requester->EquipLootBag(LootBag);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Log, TEXT("Shit was NULL man"));
-			}
+			UE_LOG(LogTemp, Log, TEXT("Got loot bag %s %d"), (Role == ROLE_Authority) ? TEXT("True") : TEXT("False"), LootBagPool.Num());
+			ALootBag* LootBag = LootBagPool.Pop();
+			Requester->EquipLootBag(LootBag);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Log, TEXT("Shit was empty man"));
+			UE_LOG(LogTemp, Log, TEXT("Shit was NULL man"));
 		}
-		//UE_LOG(LogTemp, Log, TEXT("Not loot bag %s"), (Role == ROLE_Authority) ? TEXT("True") : TEXT("False"));
-		//ServerRequestLootBag(Requester);
-	//}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("Shit was empty man"));
+	}
 
-	//if (LootBagPool.Num() > 0)
-	//{
-	//	if (Requester)
-	//	{
-	//		UE_LOG(LogTemp, Log, TEXT("Got loot bag %s"), (Role == ROLE_Authority) ? TEXT("True") : TEXT("False"));
-	//		ALootBag* LootBag = LootBagPool.Pop();
-	//		Requester->EquipLootBag(LootBag);
-	//	}
-	//	else
-	//	{
-	//		UE_LOG(LogTemp, Log, TEXT("Shit was NULL man"));
-	//	}
-	//}
-	//else
-	//{
-	//	UE_LOG(LogTemp, Log, TEXT("Shit was empty man"));
-	//}
 }
 
 bool AStockpile::ServerRequestLootBag_Validate(AShooterCharacter* Requester)
@@ -140,5 +104,5 @@ void AStockpile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AStockpile, LootBagPool);
+	DOREPLIFETIME_CONDITION(AStockpile, LootBagPool, COND_SkipOwner);
 }

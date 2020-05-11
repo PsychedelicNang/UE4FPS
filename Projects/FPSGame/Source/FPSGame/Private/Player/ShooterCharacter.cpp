@@ -151,7 +151,7 @@ void AShooterCharacter::Tick(float DeltaTime)
 		CameraComp->SetFieldOfView(NewFOV);
 	}
 
-	if (!bIsCarryingLootBag && CurrentLootBag == nullptr)
+	if (brequest == false && !bIsCarryingLootBag && CurrentLootBag == nullptr)
 	{
 		if (!bIsAttemptingInteract)
 		{
@@ -199,12 +199,43 @@ void AShooterCharacter::Tick(float DeltaTime)
 
 				if (Stockpile)
 				{
-					//UE_LOG(LogTemp, Log, TEXT("Trying loot bag"));
-					Stockpile->GetLootBagFromPile(this);
+					brequest = true;
+					GetLootBagFromStockpile(Stockpile, this);
+					////UE_LOG(LogTemp, Log, TEXT("Trying loot bag"));
+					//Stockpile->GetLootBagFromPile(this);
 				}
 			}
 		}
 	}
+}
+
+void AShooterCharacter::GetLootBagFromStockpile(AStockpile* Stockpile, AShooterCharacter* Requester)
+{
+	if (Requester)
+	{
+		if (Role == ROLE_Authority)
+		{
+			if (Stockpile)
+			{
+				//UE_LOG(LogTemp, Log, TEXT("Trying loot bag"));
+				Stockpile->GetLootBagFromPile(Requester);
+			}
+		}
+		else
+		{
+			ServerRequestLootBag(Stockpile, Requester);
+		}
+	}
+}
+
+bool AShooterCharacter::ServerRequestLootBag_Validate(AStockpile* Stockpile, AShooterCharacter* Requester)
+{
+	return true;
+}
+
+void AShooterCharacter::ServerRequestLootBag_Implementation(AStockpile* Stockpile, AShooterCharacter* Requester)
+{
+	GetLootBagFromStockpile(Stockpile, Requester);
 }
 
 void AShooterCharacter::MoveForward(float Value)
@@ -632,6 +663,8 @@ void AShooterCharacter::OnThrowItem(FVector CamLoc, FRotator CamRot)
 	{
 		ServerThrowItem(CamLoc, CamRot);
 	}
+
+	brequest = false;
 }
 
 void AShooterCharacter::OnThrowPressed()

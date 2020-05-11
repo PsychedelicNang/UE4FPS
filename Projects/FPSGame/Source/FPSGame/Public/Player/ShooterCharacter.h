@@ -320,10 +320,17 @@ public:
 	/** equip weapon */
 	UFUNCTION(reliable, server, WithValidation)
 		void ServerThrowItem(FVector CamLoc, FRotator CamRot);
+
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerRequestLootBag(AStockpile* Stockpile, AShooterCharacter* Requester);
+
+	void GetLootBagFromStockpile(AStockpile* Stockpile, AShooterCharacter* Requester);
 	/*
 * Get either first or third person mesh.
 *
 * @param	WantFirstPerson		If true returns the first peron mesh, else returns the third
 */
 	USkeletalMeshComponent* GetSpecifcPawnMesh(bool WantFirstPerson) const;
+
+	bool brequest;
 };
