@@ -258,13 +258,6 @@ float AShooterWeapon::PlayWeaponAnimation(const FWeaponAnim& Animation)
 		{
 			Duration = MyPawn->PlayAnimMontage(UseAnim);
 		}
-		{
-			UE_LOG(LogTemp, Log, TEXT("Play - UseAnim was null! %s"), (MyPawn->IsFirstPerson() ? TEXT("True") : TEXT("False")));
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Log, TEXT("Play - Pawn was null !%s"), (MyPawn->IsFirstPerson() ? TEXT("True") : TEXT("False")));
 	}
 
 	return Duration;
@@ -281,14 +274,6 @@ void AShooterWeapon::StopWeaponAnimation(const FWeaponAnim& Animation)
 		{
 			MyPawn->StopAnimMontage(UseAnim);
 		}
-		else
-		{
-			UE_LOG(LogTemp, Log, TEXT("Stop - UseAnim was null! %s"), (MyPawn->IsFirstPerson() ? TEXT("True") : TEXT("False")));
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Log, TEXT("Stop - Pawn was null !%s"), (MyPawn->IsFirstPerson() ? TEXT("True") : TEXT("False")));
 	}
 }
 
