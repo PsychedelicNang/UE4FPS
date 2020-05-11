@@ -129,6 +129,8 @@ void AShooterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	//bIsTargeting = true;
+
 	if (!IsLocallyControlled())
 	{
 		FRotator NewRot = CameraComp->RelativeRotation;

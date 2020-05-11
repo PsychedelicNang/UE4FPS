@@ -31,6 +31,7 @@ AShooterWeapon::AShooterWeapon(const FObjectInitializer& ObjectInitializer) : Su
 
 	MuzzleSocketName = "MuzzleFlashSocket";
 	TracerTargetName = "BeamEnd";
+	TracerStartName = "BulletTracerStart";
 
 	MagazineCapacity = WeaponConfig.AmmoPerClip;
 	

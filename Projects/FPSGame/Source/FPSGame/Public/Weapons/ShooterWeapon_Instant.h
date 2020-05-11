@@ -96,4 +96,9 @@ protected:
 
 	/** [local] weapon specific fire implementation */
 	virtual void FireWeapon() override;
+
+public:
+public:
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 };

@@ -9,6 +9,7 @@
 
 AShooterWeapon_Instant::AShooterWeapon_Instant(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+	//PrimaryActorTick.bCanEverTick = true;
 }
 
 void AShooterWeapon_Instant::FireWeapon()
@@ -16,18 +17,17 @@ void AShooterWeapon_Instant::FireWeapon()
 	AActor* MyOwner = GetOwner();
 	if (MyOwner)
 	{
-		//FVector EyeLocation;
-		//FRotator EyeRotation;
-		//MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
-		//
-		//FVector ShotDirection = EyeRotation.Vector();
+		FVector EyeLocation;
+		FRotator EyeRotation;
+		MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 
 		//// Bullet spread
 		//float HalfRad = FMath::DegreesToRadians(BulletSpread);
 		//ShotDirection = FMath::VRandCone(ShotDirection, HalfRad, HalfRad);
-		FVector MuzzleLocation = GetWeaponMesh()->GetSocketLocation(MuzzleSocketName);
-		FVector ShotDirection = GetWeaponMesh()->GetSocketRotation(MuzzleSocketName).Vector();
-		FVector TraceEnd = MuzzleLocation + (ShotDirection * InstantConfig.WeaponRange);
+		FVector MuzzleLocation = GetWeaponMesh()->GetSocketLocation(TracerStartName);
+		FVector ShotDirection = GetWeaponMesh()->GetSocketRotation(TracerStartName).Vector();
+		
+		FVector TraceEnd = MuzzleLocation + (EyeRotation.Vector() * InstantConfig.WeaponRange);
 
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(MyOwner);
@@ -80,4 +80,12 @@ void AShooterWeapon_Instant::FireWeapon()
 
 		PlayWeaponAnimation(FireAnim);
 	}
+}
+
+void AShooterWeapon_Instant::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	//FVector MuzzleLocation = GetWeaponMesh()->GetSocketLocation(TracerStartName);
+	//DrawDebugSphere(GetWorld(), MuzzleLocation, .5f, 2, FColor::Yellow, false, 0, 0, 1.0f);
 }
