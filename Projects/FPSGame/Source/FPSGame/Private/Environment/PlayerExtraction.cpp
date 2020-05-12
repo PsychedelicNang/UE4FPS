@@ -4,6 +4,7 @@
 #include "PlayerExtraction.h"
 #include "DrawDebugHelpers.h"
 #include "ShooterCharacter.h"
+#include "Net/UnrealNetwork.h"
 
 APlayerExtraction::APlayerExtraction()
 {
@@ -19,24 +20,32 @@ void APlayerExtraction::BeginPlay()
 
 void APlayerExtraction::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
 {
-	if (OtherActor)
+	// Only update the number of players in the zone if we are the server. The number of players should be the same at all times for servers and clients, but let's be authoritative to be safe.
+	if (Role == ROLE_Authority)
 	{
-		AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(OtherActor);
-		if (ShooterCharacter)
+		if (OtherActor)
 		{
-			++NumPlayersInZone;
+			AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(OtherActor);
+			if (ShooterCharacter)
+			{
+				++NumPlayersInZone;
+			}
 		}
 	}
 }
 
 void APlayerExtraction::OnOverlapEnd(AActor* OverlappedActor, AActor* OtherActor)
 {
-	if (OtherActor)
+	// Only update the number of players in the zone if we are the server. The number of players should be the same at all times for servers and clients, but let's be authoritative to be safe.
+	if (Role == ROLE_Authority)
 	{
-		AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(OtherActor);
-		if (ShooterCharacter)
+		if (OtherActor)
 		{
-			--NumPlayersInZone;
+			AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(OtherActor);
+			if (ShooterCharacter)
+			{
+				--NumPlayersInZone;
+			}
 		}
 	}
 }
@@ -44,4 +53,11 @@ void APlayerExtraction::OnOverlapEnd(AActor* OverlappedActor, AActor* OtherActor
 uint8 APlayerExtraction::GetNumberOfPlayersInZone() const
 {
 	return NumPlayersInZone;
+}
+
+void APlayerExtraction::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APlayerExtraction, NumPlayersInZone);
 }

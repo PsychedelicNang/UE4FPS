@@ -13,7 +13,8 @@ UCLASS()
 class FPSGAME_API ALootExtraction : public ATriggerBox
 {
 	GENERATED_BODY()
-
+	
+	UPROPERTY(replicated)
 	uint8 NumBagsInZone;
 
 public:

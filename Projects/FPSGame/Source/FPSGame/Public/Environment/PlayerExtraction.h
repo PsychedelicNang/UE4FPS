@@ -14,7 +14,8 @@ class FPSGAME_API APlayerExtraction : public ATriggerBox
 {
 	GENERATED_BODY()
 
-		uint8 NumPlayersInZone;
+	UPROPERTY(replicated)
+	uint8 NumPlayersInZone;
 
 public:
 	APlayerExtraction();

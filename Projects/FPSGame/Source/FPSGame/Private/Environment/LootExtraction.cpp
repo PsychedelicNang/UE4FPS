@@ -4,6 +4,7 @@
 #include "LootExtraction.h"
 #include "Containers/LootBag.h"
 #include "DrawDebugHelpers.h"
+#include "Net/UnrealNetwork.h"
 
 ALootExtraction::ALootExtraction()
 {
@@ -19,28 +20,36 @@ void ALootExtraction::BeginPlay()
 
 void ALootExtraction::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
 {
-	if (OtherActor)
+	// Only update the number of bags in the zone if we are the server. The number of bags should be the same at all times for servers and clients, but let's be authoritative to be safe.
+	if (Role == ROLE_Authority)
 	{
-		ALootBag* LootBag = Cast<ALootBag>(OtherActor);
-		if (LootBag)
+		if (OtherActor)
 		{
-			++NumBagsInZone;
+			ALootBag* LootBag = Cast<ALootBag>(OtherActor);
+			if (LootBag)
+			{
+				++NumBagsInZone;
 
-			// Set the loot bag's position to the center of the extraction zone and then stop the loot bag from continuing to move
-			LootBag->SetActorLocation(GetActorLocation());
-			LootBag->StopMovementAndDrop();
+				// Set the loot bag's position to the center of the extraction zone and then stop the loot bag from continuing to move
+				LootBag->SetActorLocation(GetActorLocation());
+				LootBag->StopMovementAndDrop();
+			}
 		}
 	}
 }
 
 void ALootExtraction::OnOverlapEnd(AActor* OverlappedActor, AActor* OtherActor)
 {
-	if (OtherActor)
+	// Only update the number of bags in the zone if we are the server. The number of bags should be the same at all times for servers and clients, but let's be authoritative to be safe.
+	if (Role == ROLE_Authority)
 	{
-		ALootBag* LootBag = Cast<ALootBag>(OtherActor);
-		if (LootBag)
+		if (OtherActor)
 		{
-			--NumBagsInZone;
+			ALootBag* LootBag = Cast<ALootBag>(OtherActor);
+			if (LootBag)
+			{
+				--NumBagsInZone;
+			}
 		}
 	}
 }
@@ -48,4 +57,11 @@ void ALootExtraction::OnOverlapEnd(AActor* OverlappedActor, AActor* OtherActor)
 uint8 ALootExtraction::GetNumberOfLootBagsInZone() const
 {
 	return NumBagsInZone;
+}
+
+void ALootExtraction::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ALootExtraction, NumBagsInZone);
 }
