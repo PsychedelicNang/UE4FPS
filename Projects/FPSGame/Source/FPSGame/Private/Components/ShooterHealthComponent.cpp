@@ -61,6 +61,9 @@ void UShooterHealthComponent::HandleTakeAnyDamage(AActor * DamagedActor, float D
 	//	return;
 	//}
 
+	// Update health clamped
+	Health = FMath::Clamp(Health - Damage, 0.0f, (float)HealthPartitions[HealthPartitionIndex]);
+
 	// If we fall below a health parition, update the max health we can heal to
 	if (HealthPartitionIndex != HealthPartitions.Num() - 1)
 	{
@@ -70,10 +73,7 @@ void UShooterHealthComponent::HandleTakeAnyDamage(AActor * DamagedActor, float D
 		}
 	}
 
-	// Update health clamped
-	Health = FMath::Clamp(Health - Damage, 0.0f, (float)HealthPartitions[HealthPartitionIndex]);
-
-	UE_LOG(LogTemp, Log, TEXT("Health Changed: %s"), *FString::SanitizeFloat(Health));
+	UE_LOG(LogTemp, Log, TEXT("Health Changed: %s (HealthPartitionIndex == %d)"), *FString::SanitizeFloat(Health), HealthPartitionIndex);
 
 	bIsDead = Health <= 0.0f;
 
@@ -105,7 +105,7 @@ void UShooterHealthComponent::Heal(float HealAmount)
 
 	Health = FMath::Clamp(Health + HealAmount, 0.0f, (float)HealthPartitions[HealthPartitionIndex]);
 
-	UE_LOG(LogTemp, Log, TEXT("Health Changed: %s (+%s)"), *FString::SanitizeFloat(Health), *FString::SanitizeFloat(HealAmount));
+	UE_LOG(LogTemp, Log, TEXT("Health Changed: %s (+%s) (HealthPartitionIndex == %d)"), *FString::SanitizeFloat(Health), *FString::SanitizeFloat(HealAmount), HealthPartitionIndex);
 
 	OnHealthChanged.Broadcast(this, Health, -HealAmount, nullptr, nullptr, nullptr);
 }
@@ -131,7 +131,7 @@ TArray<int32> UShooterHealthComponent::GetHealthPartitions() const
 	return HealthPartitions;
 }
 
-int UShooterHealthComponent::GetHealthPartitionIndex() const
+uint8 UShooterHealthComponent::GetHealthPartitionIndex() const
 {
 	return HealthPartitionIndex;
 }
@@ -161,4 +161,5 @@ void UShooterHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UShooterHealthComponent, Health);
+	DOREPLIFETIME(UShooterHealthComponent, HealthPartitionIndex);
 }

@@ -30,7 +30,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HealthComponent")
 	TArray<int32> HealthPartitions;
 
-	int HealthPartitionIndex;
+	UPROPERTY(replicated)
+	uint8 HealthPartitionIndex;
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HealthComponent")
@@ -58,7 +59,7 @@ public:
 
 	float GetHealth() const;
 	TArray<int32> GetHealthPartitions() const;
-	int GetHealthPartitionIndex() const;
+	uint8 GetHealthPartitionIndex() const;
 
 	// Blueprint makes it so we don't have the white execution node in blueprints
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "HealthComponent")
