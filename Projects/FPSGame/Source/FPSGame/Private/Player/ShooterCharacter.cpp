@@ -525,7 +525,7 @@ void AShooterCharacter::ServerEquipLootBag_Implementation(ALootBag* LootBag)
 
 void AShooterCharacter::OnRep_CurrentLootBag(ALootBag * LootBag)
 {
-	SetCurrentLootBag(LootBag);
+	SetCurrentLootBag(CurrentLootBag);
 }
 
 void AShooterCharacter::EquipLootBag(ALootBag* LootBag)
@@ -545,6 +545,11 @@ void AShooterCharacter::EquipLootBag(ALootBag* LootBag)
 
 void AShooterCharacter::SetCurrentLootBag(ALootBag* LootBag)
 {
+	if (LootBag)
+	{
+		LootBag->OnEquip();
+	}
+
 	CurrentLootBag = LootBag;
 
 	// equip new one
@@ -639,28 +644,35 @@ void AShooterCharacter::OnPrevWeapon()
 	//}
 }
 
+void AShooterCharacter::MulticastOnThrowItem_Implementation(FVector CamLoc, FRotator CamRot)
+{
+	if (bIsCarryingLootBag && CurrentLootBag)
+	{
+		bIsCarryingLootBag = false;
+		CurrentLootBag->OnUnEquip();
+
+		// Make sure to move the CurrentLootBag away from our player since we don't want it to collide with the person throwing it.
+		FVector NewLocation = CamLoc + CamRot.RotateVector(FVector(120, 0, 0));
+		CurrentLootBag->SetActorLocation(NewLocation);
+
+		// Launch the lootbag away from the player relative to the camera's rotation
+		FVector Direction = CamRot.Vector() * LaunchStrength;
+		CurrentLootBag->LaunchItem(Direction);
+
+		CurrentLootBag = nullptr;
+	}
+
+	brequest = false;
+}
+
 void AShooterCharacter::OnThrowItem(FVector CamLoc, FRotator CamRot)
 {
+	// If we are the server, tell ourself and all clients to throw the object. We need to do it this way because if we handle it in OnRep_CurrentLootBag, things can get messy.
 	if (Role == ROLE_Authority)
 	{
-		// Throw the item being carried (Loot Bag)
-
-		if (bIsCarryingLootBag && CurrentLootBag)
-		{
-			bIsCarryingLootBag = false;
-			CurrentLootBag->OnUnEquip();
-
-			// Make sure to move the CurrentLootBag away from our player since we don't want it to collide with the person throwing it.
-			FVector NewLocation = CamLoc + CamRot.RotateVector(FVector(120, 0, 0));
-			CurrentLootBag->SetActorLocation(NewLocation);
-
-			// Launch the lootbag away from the player relative to the camera's rotation
-			FVector Direction = CamRot.Vector() * LaunchStrength;
-			CurrentLootBag->LaunchItem(Direction);
-
-			CurrentLootBag = nullptr;
-		}
+		MulticastOnThrowItem(CamLoc, CamRot);
 	}
+	// If we are a client, tell the server we want to throw the object. This will then cause the server to call the multicast which tells everyone to throw the object.
 	else
 	{
 		ServerThrowItem(CamLoc, CamRot);

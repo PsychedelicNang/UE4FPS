@@ -15,7 +15,7 @@
 ALootBag::ALootBag()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
@@ -41,8 +41,8 @@ ALootBag::ALootBag()
 	PrimComp = Cast<UPrimitiveComponent>(GetComponentByClass(UPrimitiveComponent::StaticClass()));
 	PrimComp->SetSimulatePhysics(true);
 	PrimComp->SetMassOverrideInKg(NAME_None, GetMassOfBagInKg(), true);
-	bReplicateMovement = true;
 
+	bReplicateMovement = true;
 	SetReplicates(true);
 }
 
@@ -88,6 +88,9 @@ void ALootBag::FinishDropping()
 void ALootBag::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	//if (bIsEquipped)
+		//UE_LOG(LogTemp, Log, TEXT("%s %s"), (Role == ROLE_Authority) ? TEXT("True") : TEXT("False"), (PrimComp->IsCollisionEnabled()) ? TEXT("True") : TEXT("False"));
 }
 
 float ALootBag::GetCarryingLootBagSpeedModifier() const
@@ -133,17 +136,21 @@ float ALootBag::GetMassOfBagInKg() const
 
 void ALootBag::LaunchItem(FVector LaunchVelocity)
 {
-	if (Role == ROLE_Authority)
+	if (PrimComp)
 	{
-		if (PrimComp)
-		{
-			PrimComp->AddImpulse(LaunchVelocity, NAME_None, true);
-		}
+		PrimComp->AddImpulse(LaunchVelocity, NAME_None, true);
 	}
-	else
-	{
-		ServerLaunchItem(LaunchVelocity);
-	}
+	//if (Role == ROLE_Authority)
+	//{
+	//	if (PrimComp)
+	//	{
+	//		PrimComp->AddImpulse(LaunchVelocity, NAME_None, true);
+	//	}
+	//}
+	//else
+	//{
+	//	ServerLaunchItem(LaunchVelocity);
+	//}
 }
 
 bool ALootBag::ServerLaunchItem_Validate(FVector LaunchVelocity)
@@ -236,16 +243,21 @@ void ALootBag::ServerEquipLootBag_Implementation()
 
 void ALootBag::OnEquip()
 {
-	if (Role == ROLE_Authority)
-	{
-		AttachMeshToPawn();
-		bPendingEquip = true;
-		OnEquipFinished();
-	}
-	else
-	{
-		ServerEquipLootBag();
-	}
+	AttachMeshToPawn();
+	bPendingEquip = true;
+	OnEquipFinished();
+
+	//if (Role == ROLE_Authority)
+	//{
+	//	AttachMeshToPawn();
+	//	bPendingEquip = true;
+	//	OnEquipFinished();
+	//}
+	//else
+	//{
+	//	ServerEquipLootBag();
+	//	PrimComp->SetSimulatePhysics(false);
+	//}
 
 
 	//AttachMeshToPawn();

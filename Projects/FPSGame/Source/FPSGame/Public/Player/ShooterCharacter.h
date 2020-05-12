@@ -89,7 +89,7 @@ protected:
 	UPROPERTY(Transient, Replicated)
 		TArray<class AShooterWeapon*> Inventory;
 
-	UPROPERTY(Transient, Replicated)
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_CurrentLootBag)
 	class ALootBag* CurrentLootBag;
 
 	UPROPERTY(Transient, Replicated)
@@ -320,6 +320,9 @@ public:
 	/** equip weapon */
 	UFUNCTION(reliable, server, WithValidation)
 		void ServerThrowItem(FVector CamLoc, FRotator CamRot);
+
+	UFUNCTION(NetMulticast, reliable)
+		void MulticastOnThrowItem(FVector CamLoc, FRotator CamRot);
 
 	UFUNCTION(reliable, server, WithValidation)
 		void ServerRequestLootBag(AStockpile* Stockpile, AShooterCharacter* Requester);
