@@ -73,7 +73,7 @@ void UShooterHealthComponent::HandleTakeAnyDamage(AActor * DamagedActor, float D
 		}
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("Health Changed: %s (HealthPartitionIndex == %d)"), *FString::SanitizeFloat(Health), HealthPartitionIndex);
+	UE_LOG(LogTemp, Log, TEXT("Health Changed: %s %s (HealthPartitionIndex == %d)"), *FString::SanitizeFloat(Health), (GetOwnerRole() == ROLE_Authority) ? TEXT("True") : TEXT("False"), HealthPartitionIndex);
 
 	bIsDead = Health <= 0.0f;
 
@@ -91,34 +91,67 @@ void UShooterHealthComponent::HandleTakeAnyDamage(AActor * DamagedActor, float D
 
 void UShooterHealthComponent::OnRep_Health(float OldHealth)
 {
-	float Damage = Health - OldHealth;
+	float HealthDelta = Health - OldHealth;
+	UE_LOG(LogTemp, Log, TEXT("OnRep_Health (HealthDelta): %s %s"), *FString::SanitizeFloat(HealthDelta), (GetOwnerRole() == ROLE_Authority) ? TEXT("True") : TEXT("False"));
 
-	OnHealthChanged.Broadcast(this, Health, Damage, nullptr, nullptr, nullptr);
+	OnHealthChanged.Broadcast(this, Health, HealthDelta, nullptr, nullptr, nullptr);
+}
+
+void UShooterHealthComponent::ServerHeal_Implementation(float HealAmount)
+{
+	Heal(HealAmount);
+}
+
+bool UShooterHealthComponent::ServerHeal_Validate(float HealAmount)
+{
+	return true;
 }
 
 void UShooterHealthComponent::Heal(float HealAmount)
 {
-	if (HealAmount <= 0.0f || Health <= 0.0f)
+	if (GetOwnerRole() == ROLE_Authority)
 	{
-		return;
+		if (HealAmount <= 0.0f || Health <= 0.0f)
+		{
+			return;
+		}
+
+		Health = FMath::Clamp(Health + HealAmount, 0.0f, (float)HealthPartitions[HealthPartitionIndex]);
+
+		OnHealthChanged.Broadcast(this, Health, -HealAmount, nullptr, nullptr, nullptr);
 	}
-
-	Health = FMath::Clamp(Health + HealAmount, 0.0f, (float)HealthPartitions[HealthPartitionIndex]);
-
-	UE_LOG(LogTemp, Log, TEXT("Health Changed: %s (+%s) (HealthPartitionIndex == %d)"), *FString::SanitizeFloat(Health), *FString::SanitizeFloat(HealAmount), HealthPartitionIndex);
-
-	OnHealthChanged.Broadcast(this, Health, -HealAmount, nullptr, nullptr, nullptr);
+	else
+	{
+		ServerHeal(HealAmount);
+	}
 }
 
 // For testing only! Remove in official builds...
 void UShooterHealthComponent::KillSelf()
 {
-	float Damage = Health;
-	Health = 0.0f;
-	bIsDead = Health <= 0.0f;
+	if (GetOwnerRole() == ROLE_Authority)
+	{
+		float Damage = Health;
+		Health = 0.0f;
+		bIsDead = Health <= 0.0f;
 
-	AActor* MyOwner = GetOwner();
-	OnHealthChanged.Broadcast(this, Health, Damage, nullptr, UGameplayStatics::GetPlayerController(MyOwner, 0), MyOwner);
+		AActor* MyOwner = GetOwner();
+		OnHealthChanged.Broadcast(this, Health, Damage, nullptr, UGameplayStatics::GetPlayerController(MyOwner, 0), MyOwner);
+	}
+	else
+	{
+		ServerKillSelf();
+	}
+}
+
+bool UShooterHealthComponent::ServerKillSelf_Validate()
+{
+	return true;
+}
+
+void UShooterHealthComponent::ServerKillSelf_Implementation()
+{
+	KillSelf();
 }
 
 float UShooterHealthComponent::GetHealth() const

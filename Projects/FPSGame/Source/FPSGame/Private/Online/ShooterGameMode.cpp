@@ -75,6 +75,18 @@ void AShooterGameMode::Tick(float DeltaSeconds)
 	CheckGameStatus();
 }
 
+bool AShooterGameMode::RequestRestartDeadPlayers()
+{
+	// TODO: Implement conditions
+	if (true)
+	{
+		RestartDeadPlayers();
+
+		return true;
+	}
+	return false;
+}
+
 void AShooterGameMode::CheckGameStatus()
 {
 	// If the enemy team is dead, and at least RequiredLootBags are extracted, allow for players to extract
@@ -91,6 +103,18 @@ void AShooterGameMode::CheckGameStatus()
 				GS->MulticastOnMissionComplete();
 			}
 			UE_LOG(LogTemp, Log, TEXT("GAME OVER!"));
+		}
+	}
+}
+
+void AShooterGameMode::RestartDeadPlayers()
+{
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
+	{
+		APlayerController* PC = It->Get();
+		if (PC && PC->GetPawn() == nullptr)
+		{
+			RestartPlayer(PC);
 		}
 	}
 }

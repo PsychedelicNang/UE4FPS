@@ -328,6 +328,14 @@ public:
 		void ServerRequestLootBag(AStockpile* Stockpile, AShooterCharacter* Requester);
 
 	void GetLootBagFromStockpile(AStockpile* Stockpile, AShooterCharacter* Requester);
+
+	/*Should only be used in development.*/
+	UFUNCTION(BlueprintCallable)
+		bool RequestRestartDeadPlayers();
+
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerRequestRestartDeadPlayers();
+
 	/*
 * Get either first or third person mesh.
 *

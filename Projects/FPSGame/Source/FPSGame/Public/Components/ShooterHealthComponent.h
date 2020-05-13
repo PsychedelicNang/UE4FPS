@@ -47,6 +47,12 @@ protected:
 	UFUNCTION()
 		void OnRep_Health(float OldHealth);
 
+	UFUNCTION(server, reliable, WithValidation)
+	void ServerHeal(float HealAmount);
+
+	UFUNCTION(server, reliable, WithValidation)
+	void ServerKillSelf();
+
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 		FOnHealthChangedSignature OnHealthChanged;

@@ -32,10 +32,15 @@ protected:
 protected:
 	void CheckGameStatus();
 
+	void RestartDeadPlayers();
+
 public:
 	AShooterGameMode();
 
 public:
 	virtual void StartPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
+
+	UFUNCTION(BlueprintCallable)
+	bool RequestRestartDeadPlayers();
 };

@@ -19,6 +19,7 @@
 #include "DrawDebugHelpers.h"
 #include "Stockpile.h"
 #include "TimerManager.h"
+#include "ShooterGameMode.h"
 
 // Sets default values
 AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer)
@@ -228,6 +229,35 @@ void AShooterCharacter::GetLootBagFromStockpile(AStockpile* Stockpile, AShooterC
 			ServerRequestLootBag(Stockpile, Requester);
 		}
 	}
+}
+
+bool AShooterCharacter::RequestRestartDeadPlayers()
+{
+	if (Role == ROLE_Authority)
+	{
+		AShooterGameMode* GameMode = Cast<AShooterGameMode>(GetWorld()->GetAuthGameMode());
+		if (GameMode)
+		{
+			return GameMode->RequestRestartDeadPlayers();
+		}
+	}
+	else
+	{
+		ServerRequestRestartDeadPlayers();
+		return true; // Not the correct way to do this, but this function is only for development.. 
+	}
+
+	return false;
+}
+
+bool AShooterCharacter::ServerRequestRestartDeadPlayers_Validate()
+{
+	return true;
+}
+
+void AShooterCharacter::ServerRequestRestartDeadPlayers_Implementation()
+{
+	RequestRestartDeadPlayers();
 }
 
 bool AShooterCharacter::ServerRequestLootBag_Validate(AStockpile* Stockpile, AShooterCharacter* Requester)

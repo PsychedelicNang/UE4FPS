@@ -3,6 +3,8 @@
 
 #include "ShooterGameState.h"
 #include "ShooterPlayerController.h"
+#include "Kismet/GameplayStatics.h"
+#include "ShooterGameMode.h"
 
 void AShooterGameState::MulticastOnMissionComplete_Implementation()
 {
