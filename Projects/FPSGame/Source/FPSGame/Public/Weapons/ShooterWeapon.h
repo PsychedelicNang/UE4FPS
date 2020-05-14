@@ -172,10 +172,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 		FWeaponAnim FireAnim;
 
+public:
 	/** weapon data */
 	UPROPERTY(EditDefaultsOnly, Category = Config)
 		FWeaponData WeaponConfig;
-
+protected:
 	/** current weapon state */
 	EWeaponState::Type CurrentState;
 

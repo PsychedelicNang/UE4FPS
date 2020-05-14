@@ -29,7 +29,7 @@ AShooterWeapon::AShooterWeapon(const FObjectInitializer& ObjectInitializer) : Su
 	Mesh3P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh3P"));
 	RootComponent = Mesh1P;
 
-	MuzzleSocketName = "MuzzleFlashSocket";
+	MuzzleSocketName = "b_gun_muzzleflash";
 	TracerTargetName = "BeamEnd";
 	TracerStartName = "BulletTracerStart";
 
