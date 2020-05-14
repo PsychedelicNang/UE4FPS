@@ -130,7 +130,7 @@ void AShooterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	bIsTargeting = true;
+	//bIsTargeting = true;
 
 	if (!IsLocallyControlled())
 	{
@@ -149,7 +149,7 @@ void AShooterCharacter::Tick(float DeltaTime)
 	{
 		float TargetFOV = bIsTargeting ? ZoomedFOV : DefaultFOV;
 
-		float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaTime, CurrentWeapon ? CurrentWeapon->WeaponConfig.AimDownSightTime * ZoomedInterpSpeed : ZoomedInterpSpeed);
+		float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaTime, CurrentWeapon ? CurrentWeapon->WeaponConfig.AimDownSightTime * 100 : ZoomedInterpSpeed);
 
 		CameraComp->SetFieldOfView(NewFOV);
 	}
