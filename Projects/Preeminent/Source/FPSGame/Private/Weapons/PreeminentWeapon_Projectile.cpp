@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ShooterWeapon_Projectile.h"
-#include "Weapons/ShooterProjectile.h"
+#include "PreeminentWeapon_Projectile.h"
+#include "Weapons/PreeminentProjectile.h"
 #include "Kismet/GameplayStatics.h"
 
 AShooterWeapon_Projectile::AShooterWeapon_Projectile(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)

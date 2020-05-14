@@ -1,15 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "LootBag.h"
+#include "PreeminentLootBag.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "Player/ShooterCharacter.h"
+#include "Player/PreeminentCharacter.h"
 #include "Components/PrimitiveComponent.h"
 #include "DrawDebugHelpers.h"
 #include "TimerManager.h"
-#include "..\..\Public\Containers\LootBag.h"
+#include "Interactables/PreeminentLootBag.h"
 
 // Sets default values
 ALootBag::ALootBag()

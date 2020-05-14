@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h"
-#include "ShooterGameState.generated.h"
+#include "PreeminentGameState.generated.h"
 
 /**
  * 

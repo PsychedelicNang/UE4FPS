@@ -1,15 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ShooterGameMode.h"
-#include "ShooterCharacter.h"
-#include "LootExtraction.h"
-#include "PlayerExtraction.h"
+#include "PreeminentGameMode.h"
+#include "PreeminentCharacter.h"
+#include "PreeminentLootExtraction.h"
+#include "PreeminentPlayerExtraction.h"
 #include "Kismet/GameplayStatics.h"
-#include "ShooterGameState.h"
-#include "ShooterPlayerController.h"
+#include "PreeminentGameState.h"
+#include "PreeminentPlayerController.h"
 #include "UObject/ConstructorHelpers.h"
-#include "Stockpile.h"
+#include "PreeminentStockpile.h"
 
 AShooterGameMode::AShooterGameMode()
 {

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "ShooterWeapon.generated.h"
+#include "PreeminentWeapon.generated.h"
 
 class USkeletalMeshComponent;
 class UDamageType;

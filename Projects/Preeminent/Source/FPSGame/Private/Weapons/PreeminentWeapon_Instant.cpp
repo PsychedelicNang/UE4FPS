@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ShooterWeapon_Instant.h"
+#include "PreeminentWeapon_Instant.h"
 #include "Preeminent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "DrawDebugHelpers.h"

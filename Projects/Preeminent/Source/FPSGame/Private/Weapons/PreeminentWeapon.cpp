@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ShooterWeapon.h"
+#include "PreeminentWeapon.h"
 #include "DrawDebugHelpers.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -12,7 +12,7 @@
 #include "TimerManager.h"
 #include "Preeminent.h"
 #include "Net/UnrealNetwork.h"
-#include "ShooterCharacter.h"
+#include "PreeminentCharacter.h"
 #include "Particles/ParticleSystemComponent.h"
 
 static int32 DebugWeaponDrawing = 0;

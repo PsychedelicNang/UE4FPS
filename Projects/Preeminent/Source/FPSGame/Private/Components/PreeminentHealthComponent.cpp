@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Components/ShooterHealthComponent.h"
+#include "Components/PreeminentHealthComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values for this component's properties
-UShooterHealthComponent::UShooterHealthComponent()
+UPreeminentHealthComponent::UPreeminentHealthComponent()
 {
 	DefaultHealth = 100;
 	bIsDead = false;
@@ -18,7 +18,7 @@ UShooterHealthComponent::UShooterHealthComponent()
 }
 
 // Called when the game starts
-void UShooterHealthComponent::BeginPlay()
+void UPreeminentHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -27,7 +27,7 @@ void UShooterHealthComponent::BeginPlay()
 		AActor* MyOwner = GetOwner();
 		if (MyOwner)
 		{
-			MyOwner->OnTakeAnyDamage.AddDynamic(this, &UShooterHealthComponent::HandleTakeAnyDamage);
+			MyOwner->OnTakeAnyDamage.AddDynamic(this, &UPreeminentHealthComponent::HandleTakeAnyDamage);
 		}
 	}
 
@@ -42,14 +42,14 @@ void UShooterHealthComponent::BeginPlay()
 }
 
 // Called every frame
-void UShooterHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UPreeminentHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
 }
 
-void UShooterHealthComponent::HandleTakeAnyDamage(AActor * DamagedActor, float Damage, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
+void UPreeminentHealthComponent::HandleTakeAnyDamage(AActor * DamagedActor, float Damage, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
 {
 	if (Damage <= 0.0f || bIsDead)
 	{
@@ -89,7 +89,7 @@ void UShooterHealthComponent::HandleTakeAnyDamage(AActor * DamagedActor, float D
 	}
 }
 
-void UShooterHealthComponent::OnRep_Health(float OldHealth)
+void UPreeminentHealthComponent::OnRep_Health(float OldHealth)
 {
 	float HealthDelta = Health - OldHealth;
 	UE_LOG(LogTemp, Log, TEXT("OnRep_Health (HealthDelta): %s %s"), *FString::SanitizeFloat(HealthDelta), (GetOwnerRole() == ROLE_Authority) ? TEXT("True") : TEXT("False"));
@@ -97,17 +97,17 @@ void UShooterHealthComponent::OnRep_Health(float OldHealth)
 	OnHealthChanged.Broadcast(this, Health, HealthDelta, nullptr, nullptr, nullptr);
 }
 
-void UShooterHealthComponent::ServerHeal_Implementation(float HealAmount)
+void UPreeminentHealthComponent::ServerHeal_Implementation(float HealAmount)
 {
 	Heal(HealAmount);
 }
 
-bool UShooterHealthComponent::ServerHeal_Validate(float HealAmount)
+bool UPreeminentHealthComponent::ServerHeal_Validate(float HealAmount)
 {
 	return true;
 }
 
-void UShooterHealthComponent::Heal(float HealAmount)
+void UPreeminentHealthComponent::Heal(float HealAmount)
 {
 	if (GetOwnerRole() == ROLE_Authority)
 	{
@@ -127,7 +127,7 @@ void UShooterHealthComponent::Heal(float HealAmount)
 }
 
 // For testing only! Remove in official builds...
-void UShooterHealthComponent::KillSelf()
+void UPreeminentHealthComponent::KillSelf()
 {
 	if (GetOwnerRole() == ROLE_Authority)
 	{
@@ -144,32 +144,32 @@ void UShooterHealthComponent::KillSelf()
 	}
 }
 
-bool UShooterHealthComponent::ServerKillSelf_Validate()
+bool UPreeminentHealthComponent::ServerKillSelf_Validate()
 {
 	return true;
 }
 
-void UShooterHealthComponent::ServerKillSelf_Implementation()
+void UPreeminentHealthComponent::ServerKillSelf_Implementation()
 {
 	KillSelf();
 }
 
-float UShooterHealthComponent::GetHealth() const
+float UPreeminentHealthComponent::GetHealth() const
 {
 	return Health;
 }
 
-TArray<int32> UShooterHealthComponent::GetHealthPartitions() const
+TArray<int32> UPreeminentHealthComponent::GetHealthPartitions() const
 {
 	return HealthPartitions;
 }
 
-uint8 UShooterHealthComponent::GetHealthPartitionIndex() const
+uint8 UPreeminentHealthComponent::GetHealthPartitionIndex() const
 {
 	return HealthPartitionIndex;
 }
 
-bool UShooterHealthComponent::IsFriendly(AActor * ActorA, AActor * ActorB)
+bool UPreeminentHealthComponent::IsFriendly(AActor * ActorA, AActor * ActorB)
 {
 	if (ActorA == nullptr || ActorB == nullptr)
 	{
@@ -177,8 +177,8 @@ bool UShooterHealthComponent::IsFriendly(AActor * ActorA, AActor * ActorB)
 		return true;
 	}
 
-	UShooterHealthComponent* HealthCompA = Cast<UShooterHealthComponent>(ActorA->GetComponentByClass(UShooterHealthComponent::StaticClass()));
-	UShooterHealthComponent* HealthCompB = Cast<UShooterHealthComponent>(ActorB->GetComponentByClass(UShooterHealthComponent::StaticClass()));
+	UPreeminentHealthComponent* HealthCompA = Cast<UPreeminentHealthComponent>(ActorA->GetComponentByClass(UPreeminentHealthComponent::StaticClass()));
+	UPreeminentHealthComponent* HealthCompB = Cast<UPreeminentHealthComponent>(ActorB->GetComponentByClass(UPreeminentHealthComponent::StaticClass()));
 
 	if (HealthCompA == nullptr || HealthCompB == nullptr)
 	{
@@ -189,10 +189,10 @@ bool UShooterHealthComponent::IsFriendly(AActor * ActorA, AActor * ActorB)
 	return HealthCompA->TeamNum == HealthCompB->TeamNum;
 }
 
-void UShooterHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UPreeminentHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UShooterHealthComponent, Health);
-	DOREPLIFETIME(UShooterHealthComponent, HealthPartitionIndex);
+	DOREPLIFETIME(UPreeminentHealthComponent, Health);
+	DOREPLIFETIME(UPreeminentHealthComponent, HealthPartitionIndex);
 }

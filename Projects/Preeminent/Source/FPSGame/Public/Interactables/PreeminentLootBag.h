@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "LootBag.generated.h"
+#include "PreeminentLootBag.generated.h"
 
 class AShooterCharacter;
 class UPrimitiveComponent;

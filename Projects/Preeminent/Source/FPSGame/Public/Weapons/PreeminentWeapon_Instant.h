@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Weapons/ShooterWeapon.h"
-#include "ShooterWeapon_Instant.generated.h"
+#include "Weapons/PreeminentWeapon.h"
+#include "PreeminentWeapon_Instant.generated.h"
 
 USTRUCT()
 struct FInstantHitInfo

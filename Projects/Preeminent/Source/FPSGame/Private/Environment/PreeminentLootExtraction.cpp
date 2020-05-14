@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "LootExtraction.h"
-#include "Containers/LootBag.h"
+#include "PreeminentLootExtraction.h"
+#include "Interactables/PreeminentLootBag.h"
 #include "DrawDebugHelpers.h"
 #include "Net/UnrealNetwork.h"
 

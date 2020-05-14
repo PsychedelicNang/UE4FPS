@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/TriggerBox.h"
-#include "Stockpile.generated.h"
+#include "PreeminentStockpile.generated.h"
 
 class ALootBag;
 class AShooterCharacter;

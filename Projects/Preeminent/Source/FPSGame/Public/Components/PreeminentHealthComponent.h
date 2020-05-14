@@ -4,19 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "ShooterHealthComponent.generated.h"
+#include "PreeminentHealthComponent.generated.h"
 
 // OnHealthChanged event
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FOnHealthChangedSignature, UShooterHealthComponent*, HealthComp, float, Health, float, HealthDelta, const class UDamageType*, DamageType, class AController*, InstigatedBy, AActor*, DamageCauser);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FOnHealthChangedSignature, UPreeminentHealthComponent*, HealthComp, float, Health, float, HealthDelta, const class UDamageType*, DamageType, class AController*, InstigatedBy, AActor*, DamageCauser);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class PREEMINENT_API UShooterHealthComponent : public UActorComponent
+class PREEMINENT_API UPreeminentHealthComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:	
 	// Sets default values for this component's properties
-	UShooterHealthComponent();
+	UPreeminentHealthComponent();
 
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_Health, BlueprintReadOnly, Category = "HealthComponent")

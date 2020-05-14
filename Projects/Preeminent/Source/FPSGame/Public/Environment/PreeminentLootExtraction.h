@@ -4,21 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "Engine/TriggerBox.h"
-#include "PlayerExtraction.generated.h"
+#include "PreeminentLootExtraction.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PREEMINENT_API APlayerExtraction : public ATriggerBox
+class PREEMINENT_API ALootExtraction : public ATriggerBox
 {
 	GENERATED_BODY()
-
+	
 	UPROPERTY(replicated)
-	uint8 NumPlayersInZone;
+	uint8 NumBagsInZone;
 
 public:
-	APlayerExtraction();
+	ALootExtraction();
 
 protected:
 
@@ -33,6 +33,6 @@ protected:
 		void OnOverlapEnd(AActor* OverlappedActor, AActor* OtherActor);
 
 public:
-	uint8 GetNumberOfPlayersInZone() const;
+	uint8 GetNumberOfLootBagsInZone() const;
 
 };

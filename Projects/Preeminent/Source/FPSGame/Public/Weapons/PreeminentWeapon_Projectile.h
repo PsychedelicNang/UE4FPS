@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Weapons/ShooterWeapon.h"
-#include "ShooterWeapon_Projectile.generated.h"
+#include "Weapons/PreeminentWeapon.h"
+#include "PreeminentWeapon_Projectile.generated.h"
 
 USTRUCT()
 struct FProjectileWeaponData

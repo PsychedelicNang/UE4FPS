@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ShooterGameState.h"
-#include "ShooterPlayerController.h"
+#include "PreeminentGameState.h"
+#include "PreeminentPlayerController.h"
 #include "Kismet/GameplayStatics.h"
-#include "ShooterGameMode.h"
+#include "PreeminentGameMode.h"
 
 void AShooterGameState::MulticastOnMissionComplete_Implementation()
 {

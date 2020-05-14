@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Weapons/ShooterWeapon_Projectile.h"
-#include "ShooterProjectile.generated.h"
+#include "Weapons/PreeminentWeapon_Projectile.h"
+#include "PreeminentProjectile.generated.h"
 
 class UProjectileMovementComponent;
 class USphereComponent;

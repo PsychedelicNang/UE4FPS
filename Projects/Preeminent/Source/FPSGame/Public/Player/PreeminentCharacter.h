@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "ShooterCharacter.generated.h"
+#include "PreeminentCharacter.generated.h"
 
 UCLASS(Abstract)
 class PREEMINENT_API AShooterCharacter : public ACharacter
@@ -46,7 +46,7 @@ protected:
 	class UCameraComponent* CameraComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	class UShooterHealthComponent* HealthComp;
+	class UPreeminentHealthComponent* HealthComp;
 
 	bool bWantsToZoom;
 
@@ -178,7 +178,7 @@ protected:
 		void ServerSetRunning(bool bNewRunning, bool bToggle);
 
 	UFUNCTION()
-		void OnHealthChanged(class UShooterHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+		void OnHealthChanged(class UPreeminentHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
 	/*Responds to a weapon being fired from this character*/
 	UFUNCTION()

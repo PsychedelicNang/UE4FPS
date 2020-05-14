@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "ShooterGameMode.generated.h"
+#include "PreeminentGameMode.generated.h"
 
 /**
  * 

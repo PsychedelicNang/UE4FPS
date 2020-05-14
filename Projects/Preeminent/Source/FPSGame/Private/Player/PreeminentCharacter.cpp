@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ShooterCharacter.h"
+#include "PreeminentCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
@@ -9,17 +9,17 @@
 #include "GameFramework/PawnMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "Weapons/ShooterWeapon.h"
-#include "Components/ShooterHealthComponent.h"
+#include "Weapons/PreeminentWeapon.h"
+#include "Components/PreeminentHealthComponent.h"
 #include "Preeminent.h"
 #include "Animation/AnimInstance.h"
-#include "ShooterCharacterMovement.h"
-#include "Containers/LootBag.h"
+#include "PreeminentCharacterMovement.h"
+#include "Interactables/PreeminentLootBag.h"
 #include "GameFramework/PlayerController.h"
 #include "DrawDebugHelpers.h"
-#include "Stockpile.h"
+#include "PreeminentStockpile.h"
 #include "TimerManager.h"
-#include "ShooterGameMode.h"
+#include "PreeminentGameMode.h"
 
 // Sets default values
 AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer)
@@ -85,7 +85,7 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 	ZoomedInterpSpeed = 20.0f;
 	DefaultFOV = 90.0f;
 
-	HealthComp = CreateDefaultSubobject<UShooterHealthComponent>(TEXT("HealthComp"));
+	HealthComp = CreateDefaultSubobject<UPreeminentHealthComponent>(TEXT("HealthComp"));
 
 	bIsTargeting = false;
 	bWantsToRun = false;
@@ -406,7 +406,7 @@ void AShooterCharacter::EndInteract()
 	InteractHeldTime = 0.0f;
 }
 
-void AShooterCharacter::OnHealthChanged(UShooterHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType,
+void AShooterCharacter::OnHealthChanged(UPreeminentHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType,
 	class AController* InstigatedBy, AActor* DamageCauser)
 {
 	if (Health <= 0.0f && !bDied)

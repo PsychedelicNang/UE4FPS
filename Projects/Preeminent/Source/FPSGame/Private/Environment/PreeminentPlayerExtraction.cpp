@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "PlayerExtraction.h"
+#include "PreeminentPlayerExtraction.h"
 #include "DrawDebugHelpers.h"
-#include "ShooterCharacter.h"
+#include "PreeminentCharacter.h"
 #include "Net/UnrealNetwork.h"
 
 APlayerExtraction::APlayerExtraction()

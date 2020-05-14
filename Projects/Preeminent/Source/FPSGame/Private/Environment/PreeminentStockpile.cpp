@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Stockpile.h"
-#include "LootBag.h"
+#include "PreeminentStockpile.h"
+#include "PreeminentLootBag.h"
 #include "DrawDebugHelpers.h"
 #include "Components/ShapeComponent.h"
-#include "ShooterCharacter.h"
+#include "PreeminentCharacter.h"
 #include "Net/UnrealNetwork.h"
 
 AStockpile::AStockpile()
