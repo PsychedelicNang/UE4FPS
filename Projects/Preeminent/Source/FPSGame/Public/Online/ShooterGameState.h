@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class FPSGAME_API AShooterGameState : public AGameStateBase
+class PREEMINENT_API AShooterGameState : public AGameStateBase
 {
 	GENERATED_BODY()
 public:

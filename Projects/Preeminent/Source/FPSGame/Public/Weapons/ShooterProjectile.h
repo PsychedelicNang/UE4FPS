@@ -12,7 +12,7 @@ class USphereComponent;
 class UParticleSystemComponent;
 
 UCLASS(Abstract, Blueprintable)
-class FPSGAME_API AShooterProjectile : public AActor
+class PREEMINENT_API AShooterProjectile : public AActor
 {
 	GENERATED_UCLASS_BODY()
 	

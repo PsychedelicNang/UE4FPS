@@ -85,7 +85,7 @@ struct FInstantWeaponData
  * 
  */
 UCLASS(Abstract)
-class FPSGAME_API AShooterWeapon_Instant : public AShooterWeapon
+class PREEMINENT_API AShooterWeapon_Instant : public AShooterWeapon
 {
 	GENERATED_UCLASS_BODY()
 	

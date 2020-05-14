@@ -13,7 +13,7 @@ class AShooterCharacter;
  * 
  */
 UCLASS()
-class FPSGAME_API AStockpile : public ATriggerBox
+class PREEMINENT_API AStockpile : public ATriggerBox
 {
 	GENERATED_BODY()
 	

@@ -46,7 +46,7 @@ struct FProjectileWeaponData
  * 
  */
 UCLASS()
-class FPSGAME_API AShooterWeapon_Projectile : public AShooterWeapon
+class PREEMINENT_API AShooterWeapon_Projectile : public AShooterWeapon
 {
 	GENERATED_UCLASS_BODY()
 protected:

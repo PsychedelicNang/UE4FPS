@@ -2,7 +2,7 @@
 
 
 #include "ShooterWeapon_Instant.h"
-#include "FPSGame.h"
+#include "Preeminent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"

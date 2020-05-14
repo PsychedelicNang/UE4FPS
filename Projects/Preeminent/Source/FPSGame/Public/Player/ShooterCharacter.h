@@ -7,7 +7,7 @@
 #include "ShooterCharacter.generated.h"
 
 UCLASS(Abstract)
-class FPSGAME_API AShooterCharacter : public ACharacter
+class PREEMINENT_API AShooterCharacter : public ACharacter
 {
 	/*Used GENERATED_UCLASS_BODY() if using a member initializer list*/
 	GENERATED_UCLASS_BODY()

@@ -11,7 +11,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Components/ShooterHealthComponent.h"
-#include "FPSGame.h"
+#include "Preeminent.h"
 #include "Animation/AnimInstance.h"
 #include "ShooterCharacterMovement.h"
 #include "Containers/LootBag.h"

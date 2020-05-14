@@ -10,7 +10,7 @@ class AShooterCharacter;
 class UPrimitiveComponent;
 
 UCLASS()
-class FPSGAME_API ALootBag : public AActor
+class PREEMINENT_API ALootBag : public AActor
 {
 	GENERATED_BODY()
 

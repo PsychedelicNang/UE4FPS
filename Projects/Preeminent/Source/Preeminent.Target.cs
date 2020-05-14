@@ -3,12 +3,12 @@
 using UnrealBuildTool;
 using System.Collections.Generic;
 
-public class FPSGameTarget : TargetRules
+public class PreeminentTarget : TargetRules
 {
-	public FPSGameTarget(TargetInfo Target) : base(Target)
+	public PreeminentTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Game;
 
-		ExtraModuleNames.AddRange( new string[] { "FPSGame" } );
+		ExtraModuleNames.AddRange( new string[] { "Preeminent" } );
 	}
 }

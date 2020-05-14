@@ -10,7 +10,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "TimerManager.h"
-#include "FPSGame.h"
+#include "Preeminent.h"
 #include "Net/UnrealNetwork.h"
 #include "ShooterCharacter.h"
 #include "Particles/ParticleSystemComponent.h"

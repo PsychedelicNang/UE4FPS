@@ -101,7 +101,7 @@ struct FWeaponData
 };
 
 UCLASS(Abstract, Blueprintable)
-class FPSGAME_API AShooterWeapon : public AActor
+class PREEMINENT_API AShooterWeapon : public AActor
 {
 	GENERATED_UCLASS_BODY()
 protected:

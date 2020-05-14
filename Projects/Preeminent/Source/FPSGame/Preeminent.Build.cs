@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class FPSGame : ModuleRules
+public class Preeminent : ModuleRules
 {
-	public FPSGame(ReadOnlyTargetRules Target) : base(Target)
+	public Preeminent(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	

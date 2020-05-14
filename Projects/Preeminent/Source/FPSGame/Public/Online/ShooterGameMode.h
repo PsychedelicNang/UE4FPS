@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class FPSGAME_API AShooterGameMode : public AGameModeBase
+class PREEMINENT_API AShooterGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	

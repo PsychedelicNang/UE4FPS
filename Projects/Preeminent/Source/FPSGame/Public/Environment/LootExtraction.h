@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class FPSGAME_API ALootExtraction : public ATriggerBox
+class PREEMINENT_API ALootExtraction : public ATriggerBox
 {
 	GENERATED_BODY()
 	

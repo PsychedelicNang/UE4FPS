@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class FPSGAME_API AShooterPlayerController : public APlayerController
+class PREEMINENT_API AShooterPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
