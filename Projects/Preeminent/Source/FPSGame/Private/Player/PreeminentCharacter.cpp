@@ -22,8 +22,8 @@
 #include "PreeminentGameMode.h"
 
 // Sets default values
-AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer.SetDefaultSubobjectClass<UShooterCharacterMovement>(ACharacter::CharacterMovementComponentName))
+APreeminentCharacter::APreeminentCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UPreeminentCharacterMovement>(ACharacter::CharacterMovementComponentName))
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -102,7 +102,7 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 	CurrentLootBag = nullptr;
 }
 
-void AShooterCharacter::PostInitializeComponents()
+void APreeminentCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
@@ -110,7 +110,7 @@ void AShooterCharacter::PostInitializeComponents()
 }
 
 // Called when the game starts or when spawned
-void AShooterCharacter::BeginPlay()
+void APreeminentCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -118,7 +118,7 @@ void AShooterCharacter::BeginPlay()
 
 	if (HealthComp)
 	{
-		HealthComp->OnHealthChanged.AddDynamic(this, &AShooterCharacter::OnHealthChanged);
+		HealthComp->OnHealthChanged.AddDynamic(this, &APreeminentCharacter::OnHealthChanged);
 	}
 
 	SpawnDefaultInventory();
@@ -126,7 +126,7 @@ void AShooterCharacter::BeginPlay()
 
 
 // Called every frame
-void AShooterCharacter::Tick(float DeltaTime)
+void APreeminentCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
@@ -191,14 +191,14 @@ void AShooterCharacter::Tick(float DeltaTime)
 			InteractHeldTime = PlayerController->GetInputKeyTimeDown(FKey("F"));
 			if (InteractHeldTime > 1.0f)
 			{
-				ALootBag* LootBag = Cast<ALootBag>(Hit.Actor);
+				APreeminentLootBag* LootBag = Cast<APreeminentLootBag>(Hit.Actor);
 
 				if (LootBag)
 				{
 					EquipLootBag(LootBag);
 				}
 
-				AStockpile* Stockpile = Cast<AStockpile>(Hit.Actor);
+				APreeminentStockpile* Stockpile = Cast<APreeminentStockpile>(Hit.Actor);
 
 				if (Stockpile)
 				{
@@ -212,7 +212,7 @@ void AShooterCharacter::Tick(float DeltaTime)
 	}
 }
 
-void AShooterCharacter::GetLootBagFromStockpile(AStockpile* Stockpile, AShooterCharacter* Requester)
+void APreeminentCharacter::GetLootBagFromStockpile(APreeminentStockpile* Stockpile, APreeminentCharacter* Requester)
 {
 	if (Requester)
 	{
@@ -231,11 +231,11 @@ void AShooterCharacter::GetLootBagFromStockpile(AStockpile* Stockpile, AShooterC
 	}
 }
 
-bool AShooterCharacter::RequestRestartDeadPlayers()
+bool APreeminentCharacter::RequestRestartDeadPlayers()
 {
 	if (Role == ROLE_Authority)
 	{
-		AShooterGameMode* GameMode = Cast<AShooterGameMode>(GetWorld()->GetAuthGameMode());
+		APreeminentGameMode* GameMode = Cast<APreeminentGameMode>(GetWorld()->GetAuthGameMode());
 		if (GameMode)
 		{
 			return GameMode->RequestRestartDeadPlayers();
@@ -250,69 +250,69 @@ bool AShooterCharacter::RequestRestartDeadPlayers()
 	return false;
 }
 
-bool AShooterCharacter::ServerRequestRestartDeadPlayers_Validate()
+bool APreeminentCharacter::ServerRequestRestartDeadPlayers_Validate()
 {
 	return true;
 }
 
-void AShooterCharacter::ServerRequestRestartDeadPlayers_Implementation()
+void APreeminentCharacter::ServerRequestRestartDeadPlayers_Implementation()
 {
 	RequestRestartDeadPlayers();
 }
 
-bool AShooterCharacter::ServerRequestLootBag_Validate(AStockpile* Stockpile, AShooterCharacter* Requester)
+bool APreeminentCharacter::ServerRequestLootBag_Validate(APreeminentStockpile* Stockpile, APreeminentCharacter* Requester)
 {
 	return true;
 }
 
-void AShooterCharacter::ServerRequestLootBag_Implementation(AStockpile* Stockpile, AShooterCharacter* Requester)
+void APreeminentCharacter::ServerRequestLootBag_Implementation(APreeminentStockpile* Stockpile, APreeminentCharacter* Requester)
 {
 	GetLootBagFromStockpile(Stockpile, Requester);
 }
 
-void AShooterCharacter::MoveForward(float Value)
+void APreeminentCharacter::MoveForward(float Value)
 {
 	AddMovementInput(GetActorForwardVector() * Value);
 }
 
-void AShooterCharacter::MoveRight(float Value)
+void APreeminentCharacter::MoveRight(float Value)
 {
 	AddMovementInput(GetActorRightVector() * Value);
 }
 
-void AShooterCharacter::BeginCrouch()
+void APreeminentCharacter::BeginCrouch()
 {
 	Crouch();
 }
 
-void AShooterCharacter::EndCrouch()
+void APreeminentCharacter::EndCrouch()
 {
 	UnCrouch();
 }
 
-void AShooterCharacter::StartJump()
+void APreeminentCharacter::StartJump()
 {
 	Jump();
 }
 
-void AShooterCharacter::StopJump()
+void APreeminentCharacter::StopJump()
 {
 	StopJumping();
 }
 
-void AShooterCharacter::BeginZoom()
+void APreeminentCharacter::BeginZoom()
 {
 	bWantsToZoom = true;
 }
 
-void AShooterCharacter::EndZoom()
+void APreeminentCharacter::EndZoom()
 {
 	bWantsToZoom = false;
 }
 
-void AShooterCharacter::OnStartFiring()
+void APreeminentCharacter::OnStartFiring()
 {
-	//AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
+	//APreeminentPlayerController* MyPC = Cast<APreeminentPlayerController>(Controller);
 	//if (MyPC && MyPC->IsGameInputAllowed())
 	//{
 
@@ -325,12 +325,12 @@ void AShooterCharacter::OnStartFiring()
 	//}
 }
 
-void AShooterCharacter::OnStopFiring()
+void APreeminentCharacter::OnStopFiring()
 {
 	StopFiring();
 }
 
-void AShooterCharacter::BeginFiring()
+void APreeminentCharacter::BeginFiring()
 {
 	if (!bWantsToFire)
 	{
@@ -342,7 +342,7 @@ void AShooterCharacter::BeginFiring()
 	}
 }
 
-void AShooterCharacter::StopFiring()
+void APreeminentCharacter::StopFiring()
 {
 	if (bWantsToFire)
 	{
@@ -354,22 +354,22 @@ void AShooterCharacter::StopFiring()
 	}
 }
 
-bool AShooterCharacter::IsFiring() const
+bool APreeminentCharacter::IsFiring() const
 {
 	return bWantsToFire;
 }
 
-bool AShooterCharacter::IsCarryingLootBag() const
+bool APreeminentCharacter::IsCarryingLootBag() const
 {
 	return bIsCarryingLootBag;
 }
 
-AShooterWeapon * AShooterCharacter::GetWeapon() const
+APreeminentWeapon * APreeminentCharacter::GetWeapon() const
 {
 	return CurrentWeapon;
 }
 
-bool AShooterCharacter::IsRunning() const
+bool APreeminentCharacter::IsRunning() const
 {
 	if (!GetCharacterMovement())
 	{
@@ -381,12 +381,12 @@ bool AShooterCharacter::IsRunning() const
 	return (bWantsToRun || bWantsToRunToggled) && !GetVelocity().IsZero() && (GetVelocity().GetSafeNormal2D() | GetActorForwardVector()) > -0.1;
 }
 
-bool AShooterCharacter::IsTargeting() const
+bool APreeminentCharacter::IsTargeting() const
 {
 	return bIsTargeting;
 }
 
-void AShooterCharacter::Reload()
+void APreeminentCharacter::Reload()
 {
 	if (CurrentWeapon)
 	{
@@ -394,19 +394,19 @@ void AShooterCharacter::Reload()
 	}
 }
 
-void AShooterCharacter::StartInteract()
+void APreeminentCharacter::StartInteract()
 {
 	bIsAttemptingInteract = true;
 	InteractHeldTime = 0.0f;
 }
 
-void AShooterCharacter::EndInteract()
+void APreeminentCharacter::EndInteract()
 {
 	bIsAttemptingInteract = false;
 	InteractHeldTime = 0.0f;
 }
 
-void AShooterCharacter::OnHealthChanged(UPreeminentHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType,
+void APreeminentCharacter::OnHealthChanged(UPreeminentHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType,
 	class AController* InstigatedBy, AActor* DamageCauser)
 {
 	if (Health <= 0.0f && !bDied)
@@ -422,7 +422,7 @@ void AShooterCharacter::OnHealthChanged(UPreeminentHealthComponent* OwningHealth
 	}
 }
 
-void AShooterCharacter::HandleOnWeaponFired(AShooterWeapon * WeaponFired)
+void APreeminentCharacter::HandleOnWeaponFired(APreeminentWeapon * WeaponFired)
 {
 	//// Get the animation instance on our first person character mesh and play the Weapon Fired Montage
 	//UAnimInstance* AnimInstance = (Mesh1PComp) ? Mesh1PComp->GetAnimInstance() : nullptr;
@@ -436,7 +436,7 @@ void AShooterCharacter::HandleOnWeaponFired(AShooterWeapon * WeaponFired)
 //////////////////////////////////////////////////////////////////////////
 // Inventory
 
-void AShooterCharacter::SpawnDefaultInventory()
+void APreeminentCharacter::SpawnDefaultInventory()
 {
 	if (Role < ROLE_Authority)
 	{
@@ -450,7 +450,7 @@ void AShooterCharacter::SpawnDefaultInventory()
 		{
 			FActorSpawnParameters SpawnInfo;
 			SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-			AShooterWeapon* NewWeapon = GetWorld()->SpawnActor<AShooterWeapon>(DefaultInventoryClasses[i], SpawnInfo);
+			APreeminentWeapon* NewWeapon = GetWorld()->SpawnActor<APreeminentWeapon>(DefaultInventoryClasses[i], SpawnInfo);
 			AddWeapon(NewWeapon);
 		}
 	}
@@ -468,7 +468,7 @@ void AShooterCharacter::SpawnDefaultInventory()
 	}
 }
 
-void AShooterCharacter::DestroyInventory()
+void APreeminentCharacter::DestroyInventory()
 {
 	if (Role < ROLE_Authority)
 	{
@@ -478,7 +478,7 @@ void AShooterCharacter::DestroyInventory()
 	// remove all weapons from inventory and destroy them
 	for (int32 i = Inventory.Num() - 1; i >= 0; i--)
 	{
-		AShooterWeapon* Weapon = Inventory[i];
+		APreeminentWeapon* Weapon = Inventory[i];
 		if (Weapon)
 		{
 			RemoveWeapon(Weapon);
@@ -487,7 +487,7 @@ void AShooterCharacter::DestroyInventory()
 	}
 }
 
-void AShooterCharacter::AddWeapon(AShooterWeapon* Weapon)
+void APreeminentCharacter::AddWeapon(APreeminentWeapon* Weapon)
 {
 	if (Weapon && Role == ROLE_Authority)
 	{
@@ -496,7 +496,7 @@ void AShooterCharacter::AddWeapon(AShooterWeapon* Weapon)
 	}
 }
 
-void AShooterCharacter::RemoveWeapon(AShooterWeapon* Weapon)
+void APreeminentCharacter::RemoveWeapon(APreeminentWeapon* Weapon)
 {
 	if (Weapon && Role == ROLE_Authority)
 	{
@@ -505,7 +505,7 @@ void AShooterCharacter::RemoveWeapon(AShooterWeapon* Weapon)
 	}
 }
 
-AShooterWeapon* AShooterCharacter::FindWeapon(TSubclassOf<AShooterWeapon> WeaponClass)
+APreeminentWeapon* APreeminentCharacter::FindWeapon(TSubclassOf<APreeminentWeapon> WeaponClass)
 {
 	for (int32 i = 0; i < Inventory.Num(); i++)
 	{
@@ -518,7 +518,7 @@ AShooterWeapon* AShooterCharacter::FindWeapon(TSubclassOf<AShooterWeapon> Weapon
 	return nullptr;
 }
 
-void AShooterCharacter::EquipWeapon(AShooterWeapon* Weapon)
+void APreeminentCharacter::EquipWeapon(APreeminentWeapon* Weapon)
 {
 	if (Weapon)
 	{
@@ -533,32 +533,32 @@ void AShooterCharacter::EquipWeapon(AShooterWeapon* Weapon)
 	}
 }
 
-bool AShooterCharacter::ServerEquipWeapon_Validate(AShooterWeapon* Weapon)
+bool APreeminentCharacter::ServerEquipWeapon_Validate(APreeminentWeapon* Weapon)
 {
 	return true;
 }
 
-void AShooterCharacter::ServerEquipWeapon_Implementation(AShooterWeapon* Weapon)
+void APreeminentCharacter::ServerEquipWeapon_Implementation(APreeminentWeapon* Weapon)
 {
 	EquipWeapon(Weapon);
 }
 
-bool AShooterCharacter::ServerEquipLootBag_Validate(ALootBag* LootBag)
+bool APreeminentCharacter::ServerEquipLootBag_Validate(APreeminentLootBag* LootBag)
 {
 	return true;
 }
 
-void AShooterCharacter::ServerEquipLootBag_Implementation(ALootBag* LootBag)
+void APreeminentCharacter::ServerEquipLootBag_Implementation(APreeminentLootBag* LootBag)
 {
 	EquipLootBag(LootBag);
 }
 
-void AShooterCharacter::OnRep_CurrentLootBag(ALootBag * LootBag)
+void APreeminentCharacter::OnRep_CurrentLootBag(APreeminentLootBag * LootBag)
 {
 	SetCurrentLootBag(CurrentLootBag);
 }
 
-void AShooterCharacter::EquipLootBag(ALootBag* LootBag)
+void APreeminentCharacter::EquipLootBag(APreeminentLootBag* LootBag)
 {
 	if (LootBag)
 	{
@@ -573,7 +573,7 @@ void AShooterCharacter::EquipLootBag(ALootBag* LootBag)
 	}
 }
 
-void AShooterCharacter::SetCurrentLootBag(ALootBag* LootBag)
+void APreeminentCharacter::SetCurrentLootBag(APreeminentLootBag* LootBag)
 {
 	if (LootBag)
 	{
@@ -593,30 +593,30 @@ void AShooterCharacter::SetCurrentLootBag(ALootBag* LootBag)
 	bIsCarryingLootBag = true;
 }
 
-USkeletalMeshComponent* AShooterCharacter::GetSpecifcPawnMesh(bool WantFirstPerson) const
+USkeletalMeshComponent* APreeminentCharacter::GetSpecifcPawnMesh(bool WantFirstPerson) const
 {
 	//return Mesh1PComp;
 	return WantFirstPerson == true ? Mesh1PComp : GetMesh();
 }
 
-float AShooterCharacter::GetCarryingLootBagSpeedModifier() const
+float APreeminentCharacter::GetCarryingLootBagSpeedModifier() const
 {
 	return CurrentLootBag ? CurrentLootBag->GetCarryingLootBagSpeedModifier() : 1.0f;
 }
 
-FName AShooterCharacter::GetWeaponAttachPoint() const
+FName APreeminentCharacter::GetWeaponAttachPoint() const
 {
 	return WeaponAttachPoint;
 }
 
-FName AShooterCharacter::GetLootBagAttachPoint() const
+FName APreeminentCharacter::GetLootBagAttachPoint() const
 {
 	return LootBagAttachPoint;
 }
 
-void AShooterCharacter::SetCurrentWeapon(AShooterWeapon* NewWeapon, AShooterWeapon* LastWeapon)
+void APreeminentCharacter::SetCurrentWeapon(APreeminentWeapon* NewWeapon, APreeminentWeapon* LastWeapon)
 {
-	AShooterWeapon* LocalLastWeapon = nullptr;
+	APreeminentWeapon* LocalLastWeapon = nullptr;
 
 	if (LastWeapon != nullptr)
 	{
@@ -646,35 +646,35 @@ void AShooterCharacter::SetCurrentWeapon(AShooterWeapon* NewWeapon, AShooterWeap
 	}
 }
 
-void AShooterCharacter::OnNextWeapon()
+void APreeminentCharacter::OnNextWeapon()
 {
-	//AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
+	//APreeminentPlayerController* MyPC = Cast<APreeminentPlayerController>(Controller);
 	//if (MyPC && MyPC->IsGameInputAllowed())
 	//{
 		if (Inventory.Num() >= 2 && (CurrentWeapon == NULL || CurrentWeapon->GetCurrentState() != EWeaponState::Equipping))
 		{
 			const int32 CurrentWeaponIdx = Inventory.IndexOfByKey(CurrentWeapon);
-			AShooterWeapon* NextWeapon = Inventory[(CurrentWeaponIdx + 1) % Inventory.Num()];
+			APreeminentWeapon* NextWeapon = Inventory[(CurrentWeaponIdx + 1) % Inventory.Num()];
 			EquipWeapon(NextWeapon);
 		}
 	//}
 }
 
-void AShooterCharacter::OnPrevWeapon()
+void APreeminentCharacter::OnPrevWeapon()
 {
-	//AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
+	//APreeminentPlayerController* MyPC = Cast<APreeminentPlayerController>(Controller);
 	//if (MyPC && MyPC->IsGameInputAllowed())
 	//{
 		if (Inventory.Num() >= 2 && (CurrentWeapon == NULL || CurrentWeapon->GetCurrentState() != EWeaponState::Equipping))
 		{
 			const int32 CurrentWeaponIdx = Inventory.IndexOfByKey(CurrentWeapon);
-			AShooterWeapon* PrevWeapon = Inventory[(CurrentWeaponIdx - 1 + Inventory.Num()) % Inventory.Num()];
+			APreeminentWeapon* PrevWeapon = Inventory[(CurrentWeaponIdx - 1 + Inventory.Num()) % Inventory.Num()];
 			EquipWeapon(PrevWeapon);
 		}
 	//}
 }
 
-void AShooterCharacter::MulticastOnThrowItem_Implementation(FVector CamLoc, FRotator CamRot)
+void APreeminentCharacter::MulticastOnThrowItem_Implementation(FVector CamLoc, FRotator CamRot)
 {
 	if (bIsCarryingLootBag && CurrentLootBag)
 	{
@@ -695,7 +695,7 @@ void AShooterCharacter::MulticastOnThrowItem_Implementation(FVector CamLoc, FRot
 	brequest = false;
 }
 
-void AShooterCharacter::OnThrowItem(FVector CamLoc, FRotator CamRot)
+void APreeminentCharacter::OnThrowItem(FVector CamLoc, FRotator CamRot)
 {
 	// If we are the server, tell ourself and all clients to throw the object. We need to do it this way because if we handle it in OnRep_CurrentLootBag, things can get messy.
 	if (Role == ROLE_Authority)
@@ -711,7 +711,7 @@ void AShooterCharacter::OnThrowItem(FVector CamLoc, FRotator CamRot)
 	brequest = false;
 }
 
-void AShooterCharacter::OnThrowPressed()
+void APreeminentCharacter::OnThrowPressed()
 {
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (PlayerController)
@@ -724,58 +724,58 @@ void AShooterCharacter::OnThrowPressed()
 	}
 }
 
-bool AShooterCharacter::ServerThrowItem_Validate(FVector CamLoc, FRotator CamRot)
+bool APreeminentCharacter::ServerThrowItem_Validate(FVector CamLoc, FRotator CamRot)
 {
 	return true;
 }
 
-void AShooterCharacter::ServerThrowItem_Implementation(FVector CamLoc, FRotator CamRot)
+void APreeminentCharacter::ServerThrowItem_Implementation(FVector CamLoc, FRotator CamRot)
 {
 	OnThrowItem(CamLoc, CamRot);
 }
 
 // Called to bind functionality to input
-void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void APreeminentCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	check(PlayerInputComponent);
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &AShooterCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &AShooterCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("MoveForward", this, &APreeminentCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &APreeminentCharacter::MoveRight);
 
-	PlayerInputComponent->BindAxis("LookUp", this, &AShooterCharacter::AddControllerPitchInput);
-	PlayerInputComponent->BindAxis("Turn", this, &AShooterCharacter::AddControllerYawInput);
+	PlayerInputComponent->BindAxis("LookUp", this, &APreeminentCharacter::AddControllerPitchInput);
+	PlayerInputComponent->BindAxis("Turn", this, &APreeminentCharacter::AddControllerYawInput);
 
-	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AShooterCharacter::BeginCrouch);
-	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AShooterCharacter::EndCrouch);
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &APreeminentCharacter::BeginCrouch);
+	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &APreeminentCharacter::EndCrouch);
 
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AShooterCharacter::StartJump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AShooterCharacter::StopJump);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &APreeminentCharacter::StartJump);
+	PlayerInputComponent->BindAction("Jump", IE_Released, this, &APreeminentCharacter::StopJump);
 
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AShooterCharacter::OnStartFiring);
-	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AShooterCharacter::OnStopFiring);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &APreeminentCharacter::OnStartFiring);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &APreeminentCharacter::OnStopFiring);
 
-	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AShooterCharacter::Reload);
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &APreeminentCharacter::Reload);
 
-	PlayerInputComponent->BindAction("Targeting", IE_Pressed, this, &AShooterCharacter::OnStartTargeting);
-	PlayerInputComponent->BindAction("Targeting", IE_Released, this, &AShooterCharacter::OnStopTargeting);
+	PlayerInputComponent->BindAction("Targeting", IE_Pressed, this, &APreeminentCharacter::OnStartTargeting);
+	PlayerInputComponent->BindAction("Targeting", IE_Released, this, &APreeminentCharacter::OnStopTargeting);
 
-	PlayerInputComponent->BindAction("Run", IE_Pressed, this, &AShooterCharacter::OnStartRunning);
-	PlayerInputComponent->BindAction("RunToggle", IE_Pressed, this, &AShooterCharacter::OnStartRunningToggle);
-	PlayerInputComponent->BindAction("Run", IE_Released, this, &AShooterCharacter::OnStopRunning);
+	PlayerInputComponent->BindAction("Run", IE_Pressed, this, &APreeminentCharacter::OnStartRunning);
+	PlayerInputComponent->BindAction("RunToggle", IE_Pressed, this, &APreeminentCharacter::OnStartRunningToggle);
+	PlayerInputComponent->BindAction("Run", IE_Released, this, &APreeminentCharacter::OnStopRunning);
 
-	PlayerInputComponent->BindAction("NextWeapon", IE_Pressed, this, &AShooterCharacter::OnNextWeapon);
-	PlayerInputComponent->BindAction("PrevWeapon", IE_Pressed, this, &AShooterCharacter::OnPrevWeapon);
+	PlayerInputComponent->BindAction("NextWeapon", IE_Pressed, this, &APreeminentCharacter::OnNextWeapon);
+	PlayerInputComponent->BindAction("PrevWeapon", IE_Pressed, this, &APreeminentCharacter::OnPrevWeapon);
 
-	PlayerInputComponent->BindAction("ThrowItem", IE_Pressed, this, &AShooterCharacter::OnThrowPressed);
+	PlayerInputComponent->BindAction("ThrowItem", IE_Pressed, this, &APreeminentCharacter::OnThrowPressed);
 
-	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AShooterCharacter::StartInteract);
-	PlayerInputComponent->BindAction("Interact", IE_Released, this, &AShooterCharacter::EndInteract);
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &APreeminentCharacter::StartInteract);
+	PlayerInputComponent->BindAction("Interact", IE_Released, this, &APreeminentCharacter::EndInteract);
 }
 
-void AShooterCharacter::OnStartTargeting()
+void APreeminentCharacter::OnStartTargeting()
 {
-	//AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
+	//APreeminentPlayerController* MyPC = Cast<APreeminentPlayerController>(Controller);
 	//if (MyPC && MyPC->IsGameInputAllowed())
 	//{
 		if (IsRunning())
@@ -786,12 +786,12 @@ void AShooterCharacter::OnStartTargeting()
 	//}
 }
 
-void AShooterCharacter::OnStopTargeting()
+void APreeminentCharacter::OnStopTargeting()
 {
 	SetTargeting(false);
 }
 
-void AShooterCharacter::SetTargeting(bool bNewTargeting)
+void APreeminentCharacter::SetTargeting(bool bNewTargeting)
 {
 	bIsTargeting = bNewTargeting;
 
@@ -806,17 +806,17 @@ void AShooterCharacter::SetTargeting(bool bNewTargeting)
 	}
 }
 
-bool AShooterCharacter::ServerSetTargeting_Validate(bool bNewTargeting)
+bool APreeminentCharacter::ServerSetTargeting_Validate(bool bNewTargeting)
 {
 	return true;
 }
 
-void AShooterCharacter::ServerSetTargeting_Implementation(bool bNewTargeting)
+void APreeminentCharacter::ServerSetTargeting_Implementation(bool bNewTargeting)
 {
 	SetTargeting(bNewTargeting);
 }
 
-void AShooterCharacter::SetRunning(bool bNewRunning, bool bToggle)
+void APreeminentCharacter::SetRunning(bool bNewRunning, bool bToggle)
 {
 	bWantsToRun = bNewRunning;
 	bWantsToRunToggled = bNewRunning && bToggle;
@@ -827,19 +827,19 @@ void AShooterCharacter::SetRunning(bool bNewRunning, bool bToggle)
 	}
 }
 
-bool AShooterCharacter::ServerSetRunning_Validate(bool bNewRunning, bool bToggle)
+bool APreeminentCharacter::ServerSetRunning_Validate(bool bNewRunning, bool bToggle)
 {
 	return true;
 }
 
-void AShooterCharacter::ServerSetRunning_Implementation(bool bNewRunning, bool bToggle)
+void APreeminentCharacter::ServerSetRunning_Implementation(bool bNewRunning, bool bToggle)
 {
 	SetRunning(bNewRunning, bToggle);
 }
 
-void AShooterCharacter::OnStartRunning()
+void APreeminentCharacter::OnStartRunning()
 {
-	//AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
+	//APreeminentPlayerController* MyPC = Cast<APreeminentPlayerController>(Controller);
 	//if (MyPC && MyPC->IsGameInputAllowed())
 	//{
 		if (IsTargeting())
@@ -851,9 +851,9 @@ void AShooterCharacter::OnStartRunning()
 	//}
 }
 
-void AShooterCharacter::OnStartRunningToggle()
+void APreeminentCharacter::OnStartRunningToggle()
 {
-	//AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
+	//APreeminentPlayerController* MyPC = Cast<APreeminentPlayerController>(Controller);
 	//if (MyPC && MyPC->IsGameInputAllowed())
 	//{
 		if (IsTargeting())
@@ -865,12 +865,12 @@ void AShooterCharacter::OnStartRunningToggle()
 	//}
 }
 
-void AShooterCharacter::OnStopRunning()
+void APreeminentCharacter::OnStopRunning()
 {
 	SetRunning(false, false);
 }
 
-float AShooterCharacter::PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
+float APreeminentCharacter::PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
 {
 	USkeletalMeshComponent* UseMesh = GetPawnMesh();
 	if (AnimMontage && UseMesh && UseMesh->AnimScriptInstance)
@@ -881,7 +881,7 @@ float AShooterCharacter::PlayAnimMontage(class UAnimMontage* AnimMontage, float 
 	return 0.0f;
 }
 
-void AShooterCharacter::StopAnimMontage(class UAnimMontage* AnimMontage)
+void APreeminentCharacter::StopAnimMontage(class UAnimMontage* AnimMontage)
 {
 	USkeletalMeshComponent* UseMesh = GetPawnMesh();
 	if (AnimMontage && UseMesh && UseMesh->AnimScriptInstance &&
@@ -891,18 +891,18 @@ void AShooterCharacter::StopAnimMontage(class UAnimMontage* AnimMontage)
 	}
 }
 
-bool AShooterCharacter::IsFirstPerson() const
+bool APreeminentCharacter::IsFirstPerson() const
 {
 	return /*IsAlive() &&*/ Controller && Controller->IsLocalPlayerController();
 }
 
-USkeletalMeshComponent* AShooterCharacter::GetPawnMesh() const
+USkeletalMeshComponent* APreeminentCharacter::GetPawnMesh() const
 {
 	//return Mesh1PComp;
 	return IsFirstPerson() ? Mesh1PComp : GetMesh();
 }
 
-FVector AShooterCharacter::GetPawnViewLocation() const
+FVector APreeminentCharacter::GetPawnViewLocation() const
 {
 	if (CameraComp)
 	{
@@ -914,38 +914,38 @@ FVector AShooterCharacter::GetPawnViewLocation() const
 	}
 }
 
-void AShooterCharacter::OnRep_CurrentWeapon(AShooterWeapon* LastWeapon)
+void APreeminentCharacter::OnRep_CurrentWeapon(APreeminentWeapon* LastWeapon)
 {
 	SetCurrentWeapon(CurrentWeapon, LastWeapon);
 }
 
-void AShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void APreeminentCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	// only to local owner: weapon change requests are locally instigated, other clients don't need it
-	DOREPLIFETIME_CONDITION(AShooterCharacter, Inventory, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(APreeminentCharacter, Inventory, COND_OwnerOnly);
 
-	DOREPLIFETIME(AShooterCharacter, CurrentWeapon);
-	DOREPLIFETIME(AShooterCharacter, bDied);
-	DOREPLIFETIME(AShooterCharacter, CurrentLootBag);
+	DOREPLIFETIME(APreeminentCharacter, CurrentWeapon);
+	DOREPLIFETIME(APreeminentCharacter, bDied);
+	DOREPLIFETIME(APreeminentCharacter, CurrentLootBag);
 
-	DOREPLIFETIME_CONDITION(AShooterCharacter, bIsTargeting, COND_SkipOwner);
-	DOREPLIFETIME_CONDITION(AShooterCharacter, bWantsToRun, COND_SkipOwner);
-	DOREPLIFETIME_CONDITION(AShooterCharacter, bIsCarryingLootBag, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(APreeminentCharacter, bIsTargeting, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(APreeminentCharacter, bWantsToRun, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(APreeminentCharacter, bIsCarryingLootBag, COND_SkipOwner);
 }
 
-float AShooterCharacter::GetTargetingSpeedModifier() const
+float APreeminentCharacter::GetTargetingSpeedModifier() const
 {
 	return TargetingSpeedModifier;
 }
 
-float AShooterCharacter::GetRunningSpeedModifier() const
+float APreeminentCharacter::GetRunningSpeedModifier() const
 {
 	return RunningSpeedModifier;
 }
 
-FRotator AShooterCharacter::GetAimOffsets() const
+FRotator APreeminentCharacter::GetAimOffsets() const
 {
 	const FVector AimDirWS = GetBaseAimRotation().Vector();
 	const FVector AimDirLS = ActorToWorld().InverseTransformVectorNoScale(AimDirWS);

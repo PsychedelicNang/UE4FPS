@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class PREEMINENT_API ALootExtraction : public ATriggerBox
+class PREEMINENT_API APreeminentLootExtraction : public ATriggerBox
 {
 	GENERATED_BODY()
 	
@@ -18,7 +18,7 @@ class PREEMINENT_API ALootExtraction : public ATriggerBox
 	uint8 NumBagsInZone;
 
 public:
-	ALootExtraction();
+	APreeminentLootExtraction();
 
 protected:
 

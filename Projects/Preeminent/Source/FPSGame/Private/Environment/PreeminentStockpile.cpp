@@ -8,7 +8,7 @@
 #include "PreeminentCharacter.h"
 #include "Net/UnrealNetwork.h"
 
-AStockpile::AStockpile()
+APreeminentStockpile::APreeminentStockpile()
 {
 	NumLootBagsToSpawn = 3;
 
@@ -16,7 +16,7 @@ AStockpile::AStockpile()
 	SetReplicates(true);
 }
 
-void AStockpile::BeginPlay()
+void APreeminentStockpile::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -39,7 +39,7 @@ void AStockpile::BeginPlay()
 		{
 			FActorSpawnParameters SpawnInfo;
 			SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-			ALootBag* Spawned = GetWorld()->SpawnActor<ALootBag>(LootBagToSpawn, SpawnInfo);
+			APreeminentLootBag* Spawned = GetWorld()->SpawnActor<APreeminentLootBag>(LootBagToSpawn, SpawnInfo);
 			FVector Extent = Spawned->GetMeshExtents();
 			Spawned->SetActorLocation(GetActorLocation() + FVector(Offset - XExtent, 0.0f, 0.0f));
 			LootBagPool.Add(Spawned);
@@ -57,7 +57,7 @@ void AStockpile::BeginPlay()
 	SetOwner(GetWorld()->GetFirstPlayerController());
 }
 
-void AStockpile::GetLootBagFromPile(AShooterCharacter* Requester)
+void APreeminentStockpile::GetLootBagFromPile(APreeminentCharacter* Requester)
 {
 	UE_LOG(LogTemp, Log, TEXT("Getting loot bag %s"), (Role == ROLE_Authority) ? TEXT("True") : TEXT("False"));
 
@@ -75,7 +75,7 @@ void AStockpile::GetLootBagFromPile(AShooterCharacter* Requester)
 		if (Requester)
 		{
 			UE_LOG(LogTemp, Log, TEXT("Got loot bag %s %d"), (Role == ROLE_Authority) ? TEXT("True") : TEXT("False"), LootBagPool.Num());
-			ALootBag* LootBag = LootBagPool.Pop();
+			APreeminentLootBag* LootBag = LootBagPool.Pop();
 			Requester->EquipLootBag(LootBag);
 		}
 		else
@@ -90,19 +90,19 @@ void AStockpile::GetLootBagFromPile(AShooterCharacter* Requester)
 
 }
 
-bool AStockpile::ServerRequestLootBag_Validate(AShooterCharacter* Requester)
+bool APreeminentStockpile::ServerRequestLootBag_Validate(APreeminentCharacter* Requester)
 {
 	return true;
 }
 
-void AStockpile::ServerRequestLootBag_Implementation(AShooterCharacter* Requester)
+void APreeminentStockpile::ServerRequestLootBag_Implementation(APreeminentCharacter* Requester)
 {
 	GetLootBagFromPile(Requester);
 }
 
-void AStockpile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void APreeminentStockpile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(AStockpile, LootBagPool, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(APreeminentStockpile, LootBagPool, COND_SkipOwner);
 }

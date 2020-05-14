@@ -13,7 +13,7 @@ struct FProjectileWeaponData
 
 	/** projectile class */
 	UPROPERTY(EditDefaultsOnly, Category = Projectile)
-	TSubclassOf<class AShooterProjectile> ProjectileClass;
+	TSubclassOf<class APreeminentProjectile> ProjectileClass;
 
 	/** life time */
 	UPROPERTY(EditDefaultsOnly, Category = Projectile)
@@ -46,7 +46,7 @@ struct FProjectileWeaponData
  * 
  */
 UCLASS()
-class PREEMINENT_API AShooterWeapon_Projectile : public AShooterWeapon
+class PREEMINENT_API APreeminentWeapon_Projectile : public APreeminentWeapon
 {
 	GENERATED_UCLASS_BODY()
 protected:

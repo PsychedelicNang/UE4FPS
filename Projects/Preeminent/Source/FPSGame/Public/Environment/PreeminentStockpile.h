@@ -6,34 +6,34 @@
 #include "Engine/TriggerBox.h"
 #include "PreeminentStockpile.generated.h"
 
-class ALootBag;
-class AShooterCharacter;
+class APreeminentLootBag;
+class APreeminentCharacter;
 
 /**
  * 
  */
 UCLASS()
-class PREEMINENT_API AStockpile : public ATriggerBox
+class PREEMINENT_API APreeminentStockpile : public ATriggerBox
 {
 	GENERATED_BODY()
 	
 protected:
 	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf<ALootBag> LootBagToSpawn;
+		TSubclassOf<APreeminentLootBag> LootBagToSpawn;
 	
 	UPROPERTY(EditDefaultsOnly)
 		uint8 NumLootBagsToSpawn;
 
 	UPROPERTY(replicated)
-	TArray<ALootBag*> LootBagPool;
+	TArray<APreeminentLootBag*> LootBagPool;
 
 public:
-	AStockpile();
+	APreeminentStockpile();
 
 	virtual void BeginPlay() override;
 
-	void GetLootBagFromPile(AShooterCharacter* Requester);
+	void GetLootBagFromPile(APreeminentCharacter* Requester);
 
 	UFUNCTION(reliable, server, WithValidation)
-		void ServerRequestLootBag(AShooterCharacter* Requester);
+		void ServerRequestLootBag(APreeminentCharacter* Requester);
 };

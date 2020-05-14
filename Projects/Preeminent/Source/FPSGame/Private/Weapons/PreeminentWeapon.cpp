@@ -23,7 +23,7 @@ FAutoConsoleVariableRef CVARDebugWeaponDrawing(
 	ECVF_Cheat);
 
 // Sets default values
-AShooterWeapon::AShooterWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+APreeminentWeapon::APreeminentWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh1P"));
 	Mesh3P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh3P"));
@@ -44,17 +44,17 @@ AShooterWeapon::AShooterWeapon(const FObjectInitializer& ObjectInitializer) : Su
 	ADSAmount = 0.0;
 }
 
-void AShooterWeapon::BeginPlay()
+void APreeminentWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
 	MagazineSize = MagazineCapacity;
 
-	MyPawn = Cast<AShooterCharacter>(GetOwner());
+	MyPawn = Cast<APreeminentCharacter>(GetOwner());
 }
 
 // Called every frame
-void AShooterWeapon::Tick(float DeltaTime)
+void APreeminentWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
@@ -71,17 +71,17 @@ void AShooterWeapon::Tick(float DeltaTime)
 	}
 }
 
-EWeaponState::Type AShooterWeapon::GetCurrentState() const
+EWeaponState::Type APreeminentWeapon::GetCurrentState() const
 {
 	return CurrentState;
 }
 
-void AShooterWeapon::OnEnterInventory(AShooterCharacter* NewOwner)
+void APreeminentWeapon::OnEnterInventory(APreeminentCharacter* NewOwner)
 {
 	SetOwningPawn(NewOwner);
 }
 
-void AShooterWeapon::OnLeaveInventory()
+void APreeminentWeapon::OnLeaveInventory()
 {
 	if (Role == ROLE_Authority)
 	{
@@ -94,13 +94,13 @@ void AShooterWeapon::OnLeaveInventory()
 	}
 }
 
-bool AShooterWeapon::IsAttachedToPawn() const
+bool APreeminentWeapon::IsAttachedToPawn() const
 {
 	return  bIsEquipped || bPendingEquip;
 	//return bIsEquipped || bPendingEquip;
 }
 
-float AShooterWeapon::GetADSAmount() const
+float APreeminentWeapon::GetADSAmount() const
 {
 	return ADSAmount;
 }
@@ -108,7 +108,7 @@ float AShooterWeapon::GetADSAmount() const
 //////////////////////////////////////////////////////////////////////////
 // Inventory
 
-void AShooterWeapon::OnEquip(const AShooterWeapon* LastWeapon)
+void APreeminentWeapon::OnEquip(const APreeminentWeapon* LastWeapon)
 {
 	AttachMeshToPawn();
 
@@ -127,7 +127,7 @@ void AShooterWeapon::OnEquip(const AShooterWeapon* LastWeapon)
 	//	EquipStartedTime = GetWorld()->GetTimeSeconds();
 	//	EquipDuration = Duration;
 
-	//	GetWorldTimerManager().SetTimer(TimerHandle_OnEquipFinished, this, &AShooterWeapon::OnEquipFinished, Duration, false);
+	//	GetWorldTimerManager().SetTimer(TimerHandle_OnEquipFinished, this, &APreeminentWeapon::OnEquipFinished, Duration, false);
 	//}
 	//else
 	//{
@@ -141,7 +141,7 @@ void AShooterWeapon::OnEquip(const AShooterWeapon* LastWeapon)
 	//}
 }
 
-void AShooterWeapon::OnEquipFinished()
+void APreeminentWeapon::OnEquipFinished()
 {
 	//AttachMeshToPawn();
 
@@ -165,7 +165,7 @@ void AShooterWeapon::OnEquipFinished()
 
 }
 
-void AShooterWeapon::AttachMeshToPawn()
+void APreeminentWeapon::AttachMeshToPawn()
 {
 	if (MyPawn)
 	{
@@ -196,13 +196,13 @@ void AShooterWeapon::AttachMeshToPawn()
 	}
 }
 
-USkeletalMeshComponent* AShooterWeapon::GetWeaponMesh() const
+USkeletalMeshComponent* APreeminentWeapon::GetWeaponMesh() const
 {
 	//return MeshComp;
 	return (MyPawn != NULL && MyPawn->IsFirstPerson()) ? Mesh1P : Mesh3P;
 }
 
-void AShooterWeapon::DetachMeshFromPawn()
+void APreeminentWeapon::DetachMeshFromPawn()
 {
 	Mesh1P->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
 	Mesh1P->SetHiddenInGame(true);
@@ -211,7 +211,7 @@ void AShooterWeapon::DetachMeshFromPawn()
 	Mesh3P->SetHiddenInGame(true);
 }
 
-void AShooterWeapon::OnUnEquip()
+void APreeminentWeapon::OnUnEquip()
 {
 	DetachMeshFromPawn();
 	bIsEquipped = false;
@@ -237,7 +237,7 @@ void AShooterWeapon::OnUnEquip()
 	//DetermineWeaponState();
 }
 
-void AShooterWeapon::SetOwningPawn(AShooterCharacter* NewOwner)
+void APreeminentWeapon::SetOwningPawn(APreeminentCharacter* NewOwner)
 {
 	if (MyPawn != NewOwner)
 	{
@@ -248,7 +248,7 @@ void AShooterWeapon::SetOwningPawn(AShooterCharacter* NewOwner)
 	}
 }
 
-float AShooterWeapon::PlayWeaponAnimation(const FWeaponAnim& Animation)
+float APreeminentWeapon::PlayWeaponAnimation(const FWeaponAnim& Animation)
 {
 	float Duration = 0.0f;
 	
@@ -264,7 +264,7 @@ float AShooterWeapon::PlayWeaponAnimation(const FWeaponAnim& Animation)
 	return Duration;
 }
 
-void AShooterWeapon::StopWeaponAnimation(const FWeaponAnim& Animation)
+void APreeminentWeapon::StopWeaponAnimation(const FWeaponAnim& Animation)
 {
 	if (MyPawn)
 	{
@@ -278,7 +278,7 @@ void AShooterWeapon::StopWeaponAnimation(const FWeaponAnim& Animation)
 	}
 }
 
-void AShooterWeapon::Fire()
+void APreeminentWeapon::Fire()
 {
 	if (MagazineSize > 0 || WeaponConfig.bInfiniteClip)
 	{
@@ -291,47 +291,47 @@ void AShooterWeapon::Fire()
 	}
 }
 
-bool AShooterWeapon::ServerStartFire_Validate()
+bool APreeminentWeapon::ServerStartFire_Validate()
 {
 	return true;
 }
 
-void AShooterWeapon::ServerStartFire_Implementation()
+void APreeminentWeapon::ServerStartFire_Implementation()
 {
 	BeginFiring();
 }
 
-bool AShooterWeapon::ServerStopFire_Validate()
+bool APreeminentWeapon::ServerStopFire_Validate()
 {
 	return true;
 }
 
-void AShooterWeapon::ServerStopFire_Implementation()
+void APreeminentWeapon::ServerStopFire_Implementation()
 {
 	StopFiring();
 }
 
-void AShooterWeapon::ServerStartReload_Implementation()
+void APreeminentWeapon::ServerStartReload_Implementation()
 {
 	StartReload();
 }
 
-void AShooterWeapon::ServerStopReload_Implementation()
+void APreeminentWeapon::ServerStopReload_Implementation()
 {
 	StopReload();
 }
 
-bool AShooterWeapon::ServerStartReload_Validate()
+bool APreeminentWeapon::ServerStartReload_Validate()
 {
 	return true;
 }
 
-bool AShooterWeapon::ServerStopReload_Validate()
+bool APreeminentWeapon::ServerStopReload_Validate()
 {
 	return true;
 }
 
-void AShooterWeapon::BeginFiring()
+void APreeminentWeapon::BeginFiring()
 {
 	if (Role < ROLE_Authority)
 	{
@@ -339,10 +339,10 @@ void AShooterWeapon::BeginFiring()
 	}
 	
 	float FirstDelay = FMath::Max(LastFiredTime + WeaponConfig.TimeBetweenShots - GetWorld()->TimeSeconds, 0.0f);
-	GetWorldTimerManager().SetTimer(TimerHandle_TimeBetweenShots, this, &AShooterWeapon::Fire, WeaponConfig.TimeBetweenShots, true, FirstDelay);
+	GetWorldTimerManager().SetTimer(TimerHandle_TimeBetweenShots, this, &APreeminentWeapon::Fire, WeaponConfig.TimeBetweenShots, true, FirstDelay);
 }
 
-void AShooterWeapon::StopFiring()
+void APreeminentWeapon::StopFiring()
 {
 	if (Role < ROLE_Authority)
 	{
@@ -359,7 +359,7 @@ void AShooterWeapon::StopFiring()
 	//}
 }
 
-void AShooterWeapon::StartReload()
+void APreeminentWeapon::StartReload()
 {
 	if (Role < ROLE_Authority)
 	{
@@ -369,12 +369,12 @@ void AShooterWeapon::StartReload()
 	MagazineSize = MagazineCapacity;
 }
 
-void AShooterWeapon::StopReload()
+void APreeminentWeapon::StopReload()
 {
 	// TODO: Implement...
 }
 
-void AShooterWeapon::PlayFireEffects(FVector TraceEnd)
+void APreeminentWeapon::PlayFireEffects(FVector TraceEnd)
 {
 	if (MuzzleEffect)
 	{
@@ -403,7 +403,7 @@ void AShooterWeapon::PlayFireEffects(FVector TraceEnd)
 	}
 }
 
-void AShooterWeapon::PlayImpactEffects(EPhysicalSurface SurfaceType, FVector ImpactPoint)
+void APreeminentWeapon::PlayImpactEffects(EPhysicalSurface SurfaceType, FVector ImpactPoint)
 {
 	UParticleSystem* SelectedEffect = nullptr;
 	switch (SurfaceType)
@@ -428,18 +428,18 @@ void AShooterWeapon::PlayImpactEffects(EPhysicalSurface SurfaceType, FVector Imp
 	}
 }
 
-void AShooterWeapon::ServerFire_Implementation()
+void APreeminentWeapon::ServerFire_Implementation()
 {
 	Fire();
 }
 
-bool AShooterWeapon::ServerFire_Validate()
+bool APreeminentWeapon::ServerFire_Validate()
 {
 	// This is where anti-cheat should happen.
 	return true;
 }
 
-void AShooterWeapon::OnRep_HitScanTrace()
+void APreeminentWeapon::OnRep_HitScanTrace()
 {
 	// Play cosmetic FX
 
@@ -449,10 +449,10 @@ void AShooterWeapon::OnRep_HitScanTrace()
 }
 
 
-void AShooterWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void APreeminentWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(AShooterWeapon, HitScanTrace, COND_SkipOwner);
-	DOREPLIFETIME_CONDITION(AShooterWeapon, ADSAmount, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(APreeminentWeapon, HitScanTrace, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(APreeminentWeapon, ADSAmount, COND_SkipOwner);
 }

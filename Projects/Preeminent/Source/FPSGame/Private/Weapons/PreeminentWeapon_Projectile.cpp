@@ -5,11 +5,11 @@
 #include "Weapons/PreeminentProjectile.h"
 #include "Kismet/GameplayStatics.h"
 
-AShooterWeapon_Projectile::AShooterWeapon_Projectile(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+APreeminentWeapon_Projectile::APreeminentWeapon_Projectile(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 }
 
-void AShooterWeapon_Projectile::FireWeapon()
+void APreeminentWeapon_Projectile::FireWeapon()
 {
 	//FVector ShootDir = GetAdjustedAim();
 	//FVector Origin = GetMuzzleLocation();
@@ -63,7 +63,7 @@ void AShooterWeapon_Projectile::FireWeapon()
 	FVector MuzzleLocation = GetWeaponMesh()->GetSocketLocation(MuzzleSocketName);
 	FVector ShotDirection = GetWeaponMesh()->GetSocketRotation(MuzzleSocketName).Vector();
 	FTransform SpawnTM(ShotDirection.Rotation(), MuzzleLocation);
-	AShooterProjectile* Projectile = Cast<AShooterProjectile>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, ProjectileConfig.ProjectileClass, SpawnTM));
+	APreeminentProjectile* Projectile = Cast<APreeminentProjectile>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, ProjectileConfig.ProjectileClass, SpawnTM));
 	if (Projectile)
 	{
 		Projectile->Instigator = Instigator;

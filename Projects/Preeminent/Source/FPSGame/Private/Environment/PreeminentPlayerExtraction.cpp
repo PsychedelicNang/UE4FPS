@@ -6,26 +6,26 @@
 #include "PreeminentCharacter.h"
 #include "Net/UnrealNetwork.h"
 
-APlayerExtraction::APlayerExtraction()
+APreeminentPlayerExtraction::APreeminentPlayerExtraction()
 {
 	//Register Events
-	OnActorBeginOverlap.AddDynamic(this, &APlayerExtraction::OnOverlapBegin);
-	OnActorEndOverlap.AddDynamic(this, &APlayerExtraction::OnOverlapEnd);
+	OnActorBeginOverlap.AddDynamic(this, &APreeminentPlayerExtraction::OnOverlapBegin);
+	OnActorEndOverlap.AddDynamic(this, &APreeminentPlayerExtraction::OnOverlapEnd);
 }
 
-void APlayerExtraction::BeginPlay()
+void APreeminentPlayerExtraction::BeginPlay()
 {
 	DrawDebugBox(GetWorld(), GetActorLocation(), GetComponentsBoundingBox().GetExtent(), FColor::Green, true, -1, 0, 5);
 }
 
-void APlayerExtraction::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
+void APreeminentPlayerExtraction::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
 {
 	// Only update the number of players in the zone if we are the server. The number of players should be the same at all times for servers and clients, but let's be authoritative to be safe.
 	if (Role == ROLE_Authority)
 	{
 		if (OtherActor)
 		{
-			AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(OtherActor);
+			APreeminentCharacter* ShooterCharacter = Cast<APreeminentCharacter>(OtherActor);
 			if (ShooterCharacter)
 			{
 				++NumPlayersInZone;
@@ -34,14 +34,14 @@ void APlayerExtraction::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherAct
 	}
 }
 
-void APlayerExtraction::OnOverlapEnd(AActor* OverlappedActor, AActor* OtherActor)
+void APreeminentPlayerExtraction::OnOverlapEnd(AActor* OverlappedActor, AActor* OtherActor)
 {
 	// Only update the number of players in the zone if we are the server. The number of players should be the same at all times for servers and clients, but let's be authoritative to be safe.
 	if (Role == ROLE_Authority)
 	{
 		if (OtherActor)
 		{
-			AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(OtherActor);
+			APreeminentCharacter* ShooterCharacter = Cast<APreeminentCharacter>(OtherActor);
 			if (ShooterCharacter)
 			{
 				--NumPlayersInZone;
@@ -50,14 +50,14 @@ void APlayerExtraction::OnOverlapEnd(AActor* OverlappedActor, AActor* OtherActor
 	}
 }
 
-uint8 APlayerExtraction::GetNumberOfPlayersInZone() const
+uint8 APreeminentPlayerExtraction::GetNumberOfPlayersInZone() const
 {
 	return NumPlayersInZone;
 }
 
-void APlayerExtraction::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void APreeminentPlayerExtraction::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(APlayerExtraction, NumPlayersInZone);
+	DOREPLIFETIME(APreeminentPlayerExtraction, NumPlayersInZone);
 }

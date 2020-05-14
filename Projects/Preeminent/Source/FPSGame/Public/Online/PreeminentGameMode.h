@@ -10,18 +10,18 @@
  * 
  */
 UCLASS()
-class PREEMINENT_API AShooterGameMode : public AGameModeBase
+class PREEMINENT_API APreeminentGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	
 protected:
-	class APlayerExtraction* PlayerExtraction;
-	class ALootExtraction* LootExtraction;
-	class AStockpile* Stockpile;
+	class APreeminentPlayerExtraction* PlayerExtraction;
+	class APreeminentLootExtraction* LootExtraction;
+	class APreeminentStockpile* Stockpile;
 
 	///** default inventory list */
 	//UPROPERTY(EditDefaultsOnly, Category = "Objectives")
-	//	TSubclassOf<class AStockpile> StockpilePrefab;
+	//	TSubclassOf<class APreeminentStockpile> StockpilePrefab;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Game Rules")
 	uint8 NumPlayersRequiredToExtract;
@@ -35,7 +35,7 @@ protected:
 	void RestartDeadPlayers();
 
 public:
-	AShooterGameMode();
+	APreeminentGameMode();
 
 public:
 	virtual void StartPlay() override;

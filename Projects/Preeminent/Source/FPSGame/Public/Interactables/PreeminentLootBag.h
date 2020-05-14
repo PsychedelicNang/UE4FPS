@@ -6,11 +6,11 @@
 #include "GameFramework/Actor.h"
 #include "PreeminentLootBag.generated.h"
 
-class AShooterCharacter;
+class APreeminentCharacter;
 class UPrimitiveComponent;
 
 UCLASS()
-class PREEMINENT_API ALootBag : public AActor
+class PREEMINENT_API APreeminentLootBag : public AActor
 {
 	GENERATED_BODY()
 
@@ -43,7 +43,7 @@ protected:
 
 	/** pawn owner */
 	UPROPERTY(Transient)
-		AShooterCharacter* MyPawn;
+		APreeminentCharacter* MyPawn;
 
 	UPrimitiveComponent* PrimComp;
 
@@ -53,7 +53,7 @@ protected:
 
 public:	
 	// Sets default values for this actor's properties
-	ALootBag();
+	APreeminentLootBag();
 
 protected:
 	// Called when the game starts or when spawned
@@ -85,7 +85,7 @@ public:
 		float GetCarryingLootBagSpeedModifier() const;
 
 	/** set the weapon's owning pawn */
-	void SetOwningPawn(AShooterCharacter* AShooterCharacter);
+	void SetOwningPawn(APreeminentCharacter* APreeminentCharacter);
 
 	/** weapon is being equipped by owner pawn */
 	virtual void OnEquip();
@@ -97,7 +97,7 @@ public:
 	virtual void OnUnEquip();
 
 	/** [server] weapon was added to pawn's inventory */
-	virtual void OnEnterInventory(AShooterCharacter* NewOwner);
+	virtual void OnEnterInventory(APreeminentCharacter* NewOwner);
 
 	/** [server] weapon was removed from pawn's inventory */
 	virtual void OnLeaveInventory();

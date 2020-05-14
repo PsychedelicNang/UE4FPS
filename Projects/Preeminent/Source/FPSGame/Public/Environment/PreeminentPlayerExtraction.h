@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class PREEMINENT_API APlayerExtraction : public ATriggerBox
+class PREEMINENT_API APreeminentPlayerExtraction : public ATriggerBox
 {
 	GENERATED_BODY()
 
@@ -18,7 +18,7 @@ class PREEMINENT_API APlayerExtraction : public ATriggerBox
 	uint8 NumPlayersInZone;
 
 public:
-	APlayerExtraction();
+	APreeminentPlayerExtraction();
 
 protected:
 

@@ -101,7 +101,7 @@ struct FWeaponData
 };
 
 UCLASS(Abstract, Blueprintable)
-class PREEMINENT_API AShooterWeapon : public AActor
+class PREEMINENT_API APreeminentWeapon : public AActor
 {
 	GENERATED_UCLASS_BODY()
 protected:
@@ -110,7 +110,7 @@ protected:
 
 //public:	
 //	// Sets default values for this actor's properties
-//	AShooterWeapon();
+//	APreeminentWeapon();
 //
 public:	
 	// Called every frame
@@ -211,10 +211,10 @@ protected:
 
 	/** pawn owner */
 	UPROPERTY(Transient)
-	class AShooterCharacter* MyPawn;
+	class APreeminentCharacter* MyPawn;
 
 	///** [server] weapon was added to pawn's inventory */
-	//virtual void OnEnterInventory(AShooterCharacter* NewOwner);
+	//virtual void OnEnterInventory(APreeminentCharacter* NewOwner);
 
 	///** [server] weapon was removed from pawn's inventory */
 	//virtual void OnLeaveInventory();
@@ -258,12 +258,12 @@ public:
 	virtual void StopReload();
 
 	/** set the weapon's owning pawn */
-	void SetOwningPawn(AShooterCharacter* AShooterCharacter);
+	void SetOwningPawn(APreeminentCharacter* APreeminentCharacter);
 
 	EWeaponState::Type GetCurrentState() const;
 
 	/** weapon is being equipped by owner pawn */
-	virtual void OnEquip(const AShooterWeapon* LastWeapon);
+	virtual void OnEquip(const APreeminentWeapon* LastWeapon);
 
 	/** weapon is now equipped by owner pawn */
 	virtual void OnEquipFinished();
@@ -272,7 +272,7 @@ public:
 	virtual void OnUnEquip();
 
 	/** [server] weapon was added to pawn's inventory */
-	virtual void OnEnterInventory(AShooterCharacter* NewOwner);
+	virtual void OnEnterInventory(APreeminentCharacter* NewOwner);
 
 	/** [server] weapon was removed from pawn's inventory */
 	virtual void OnLeaveInventory();

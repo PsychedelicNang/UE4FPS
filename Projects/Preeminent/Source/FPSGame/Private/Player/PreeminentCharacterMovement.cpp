@@ -7,17 +7,17 @@
 //----------------------------------------------------------------------//
 // UPawnMovementComponent
 //----------------------------------------------------------------------//
-UShooterCharacterMovement::UShooterCharacterMovement(const FObjectInitializer& ObjectInitializer)
+UPreeminentCharacterMovement::UPreeminentCharacterMovement(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
 
 
-float UShooterCharacterMovement::GetMaxSpeed() const
+float UPreeminentCharacterMovement::GetMaxSpeed() const
 {
 	float MaxSpeed = Super::GetMaxSpeed();
 
-	const AShooterCharacter* ShooterCharacterOwner = Cast<AShooterCharacter>(PawnOwner);
+	const APreeminentCharacter* ShooterCharacterOwner = Cast<APreeminentCharacter>(PawnOwner);
 	if (ShooterCharacterOwner)
 	{
 		if (ShooterCharacterOwner->IsTargeting())

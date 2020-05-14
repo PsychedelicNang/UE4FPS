@@ -11,7 +11,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "PreeminentStockpile.h"
 
-AShooterGameMode::AShooterGameMode()
+APreeminentGameMode::APreeminentGameMode()
 {
 	NumPlayersRequiredToExtract = 1;
 	NumLootBagsRequiredToExtract = 1;
@@ -24,58 +24,58 @@ AShooterGameMode::AShooterGameMode()
 	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnObj(TEXT("/Game/Blueprints/Pawns/BP_PlayerPawn"));
 	DefaultPawnClass = PlayerPawnObj.Class;
 
-	GameStateClass = AShooterGameState::StaticClass();
-	PlayerControllerClass = AShooterPlayerController::StaticClass();
+	GameStateClass = APreeminentGameState::StaticClass();
+	PlayerControllerClass = APreeminentPlayerController::StaticClass();
 }
 
-void AShooterGameMode::StartPlay()
+void APreeminentGameMode::StartPlay()
 {
 	Super::StartPlay();
 
 	// Find all of the PlayerExtractions in the level
 	TArray<AActor*> FoundPlayerExtractions;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerExtraction::StaticClass(), FoundPlayerExtractions);
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APreeminentPlayerExtraction::StaticClass(), FoundPlayerExtractions);
 
 	if (FoundPlayerExtractions.Num() > 0)
 	{
-		PlayerExtraction = Cast<APlayerExtraction>(FoundPlayerExtractions[0]);
+		PlayerExtraction = Cast<APreeminentPlayerExtraction>(FoundPlayerExtractions[0]);
 		//PlayerExtraction->SetOwner(this);
 	}
 
 	// Find all of the LootExtractions in the level
 	TArray<AActor*> FoundLootExtractions;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ALootExtraction::StaticClass(), FoundLootExtractions);
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APreeminentLootExtraction::StaticClass(), FoundLootExtractions);
 
 	if (FoundLootExtractions.Num() > 0)
 	{
-		LootExtraction = Cast<ALootExtraction>(FoundLootExtractions[0]);
+		LootExtraction = Cast<APreeminentLootExtraction>(FoundLootExtractions[0]);
 		//LootExtraction->SetOwner(this);
 	}
 
 	//FActorSpawnParameters SpawnInfo;
 	//SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	//FVector Location = FVector(-730.000000, -600.000000, 440.000000);
-	//AStockpile* TheStockpile = GetWorld()->SpawnActor<AStockpile>(StockpilePrefab, Location, FRotator::ZeroRotator, SpawnInfo);
+	//APreeminentStockpile* TheStockpile = GetWorld()->SpawnActor<APreeminentStockpile>(StockpilePrefab, Location, FRotator::ZeroRotator, SpawnInfo);
 	//TheStockpile->SetOwner(this);
 
 	TArray<AActor*> FoundStockpiles;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AStockpile::StaticClass(), FoundStockpiles);
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APreeminentStockpile::StaticClass(), FoundStockpiles);
 
 	if (FoundStockpiles.Num() > 0)
 	{
-		Stockpile = Cast<AStockpile>(FoundStockpiles[0]);
+		Stockpile = Cast<APreeminentStockpile>(FoundStockpiles[0]);
 		//Stockpile->SetOwner(this);
 	}
 }
 
-void AShooterGameMode::Tick(float DeltaSeconds)
+void APreeminentGameMode::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
 	CheckGameStatus();
 }
 
-bool AShooterGameMode::RequestRestartDeadPlayers()
+bool APreeminentGameMode::RequestRestartDeadPlayers()
 {
 	// TODO: Implement conditions
 	if (true)
@@ -87,7 +87,7 @@ bool AShooterGameMode::RequestRestartDeadPlayers()
 	return false;
 }
 
-void AShooterGameMode::CheckGameStatus()
+void APreeminentGameMode::CheckGameStatus()
 {
 	// If the enemy team is dead, and at least RequiredLootBags are extracted, allow for players to extract
 
@@ -97,7 +97,7 @@ void AShooterGameMode::CheckGameStatus()
 		uint8 NumLootBagsInZone = LootExtraction->GetNumberOfLootBagsInZone();
 		if (NumPlayersInZone >= NumPlayersRequiredToExtract && NumLootBagsInZone >= NumLootBagsRequiredToExtract)
 		{
-			AShooterGameState* GS = GetGameState<AShooterGameState>();
+			APreeminentGameState* GS = GetGameState<APreeminentGameState>();
 			if (GS)
 			{
 				GS->MulticastOnMissionComplete();
@@ -107,7 +107,7 @@ void AShooterGameMode::CheckGameStatus()
 	}
 }
 
-void AShooterGameMode::RestartDeadPlayers()
+void APreeminentGameMode::RestartDeadPlayers()
 {
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
 	{

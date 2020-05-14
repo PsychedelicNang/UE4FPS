@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class PREEMINENT_API UShooterCharacterMovement : public UCharacterMovementComponent
+class PREEMINENT_API UPreeminentCharacterMovement : public UCharacterMovementComponent
 {
 	GENERATED_UCLASS_BODY()
 	

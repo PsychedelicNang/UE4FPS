@@ -6,11 +6,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "PreeminentGameMode.h"
 
-void AShooterGameState::MulticastOnMissionComplete_Implementation()
+void APreeminentGameState::MulticastOnMissionComplete_Implementation()
 {
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
 	{
-		AShooterPlayerController* PC = Cast<AShooterPlayerController>(It->Get());
+		APreeminentPlayerController* PC = Cast<APreeminentPlayerController>(It->Get());
 		if (PC && PC->IsLocalController())
 		{
 			PC->OnMissionComplete();

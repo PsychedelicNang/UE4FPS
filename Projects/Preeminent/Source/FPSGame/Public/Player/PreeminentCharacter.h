@@ -7,7 +7,7 @@
 #include "PreeminentCharacter.generated.h"
 
 UCLASS(Abstract)
-class PREEMINENT_API AShooterCharacter : public ACharacter
+class PREEMINENT_API APreeminentCharacter : public ACharacter
 {
 	/*Used GENERATED_UCLASS_BODY() if using a member initializer list*/
 	GENERATED_UCLASS_BODY()
@@ -16,7 +16,7 @@ class PREEMINENT_API AShooterCharacter : public ACharacter
 	//	GENERATED_BODY()
 	//
 	//public:
-	//	AShooterCharacter();
+	//	APreeminentCharacter();
 
 	/** spawn inventory, setup initial variables */
 	virtual void PostInitializeComponents() override;
@@ -63,7 +63,7 @@ protected:
 		float ZoomedInterpSpeed;
 
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Inventory, ReplicatedUsing = OnRep_CurrentWeapon)
-	class AShooterWeapon* CurrentWeapon;
+	class APreeminentWeapon* CurrentWeapon;
 
 	/** modifier for max movement speed */
 	UPROPERTY(EditDefaultsOnly, Category = Pawn)
@@ -83,14 +83,14 @@ protected:
 
 	/** default inventory list */
 	UPROPERTY(EditDefaultsOnly, Category = Inventory)
-		TArray<TSubclassOf<class AShooterWeapon> > DefaultInventoryClasses;
+		TArray<TSubclassOf<class APreeminentWeapon> > DefaultInventoryClasses;
 
 	/** weapons in inventory */
 	UPROPERTY(Transient, Replicated)
-		TArray<class AShooterWeapon*> Inventory;
+		TArray<class APreeminentWeapon*> Inventory;
 
 	UPROPERTY(Replicated, ReplicatedUsing = OnRep_CurrentLootBag)
-	class ALootBag* CurrentLootBag;
+	class APreeminentLootBag* CurrentLootBag;
 
 	UPROPERTY(Transient, Replicated)
 	uint8 bWantsToRun : 1;
@@ -182,7 +182,7 @@ protected:
 
 	/*Responds to a weapon being fired from this character*/
 	UFUNCTION()
-		void HandleOnWeaponFired(class AShooterWeapon* WeaponFired);
+		void HandleOnWeaponFired(class APreeminentWeapon* WeaponFired);
 
 	/** [server] spawns default inventory */
 	void SpawnDefaultInventory();
@@ -192,9 +192,9 @@ protected:
 
 
 	/** updates current weapon */
-	void SetCurrentWeapon(class AShooterWeapon* NewWeapon, class AShooterWeapon* LastWeapon = nullptr);
+	void SetCurrentWeapon(class APreeminentWeapon* NewWeapon, class APreeminentWeapon* LastWeapon = nullptr);
 
-	void SetCurrentLootBag(ALootBag* LootBag);
+	void SetCurrentLootBag(APreeminentLootBag* LootBag);
 
 	//////////////////////////////////////////////////////////////////////////
 	// Inventory
@@ -204,35 +204,35 @@ protected:
 	*
 	* @param Weapon	Weapon to add.
 	*/
-	void AddWeapon(class AShooterWeapon* Weapon);
+	void AddWeapon(class APreeminentWeapon* Weapon);
 
 	/**
 	* [server] remove weapon from inventory
 	*
 	* @param Weapon	Weapon to remove.
 	*/
-	void RemoveWeapon(class AShooterWeapon* Weapon);
+	void RemoveWeapon(class APreeminentWeapon* Weapon);
 
 	/**
 	* Find in inventory
 	*
 	* @param WeaponClass	Class of weapon to find.
 	*/
-	class AShooterWeapon* FindWeapon(TSubclassOf<class AShooterWeapon> WeaponClass);
+	class APreeminentWeapon* FindWeapon(TSubclassOf<class APreeminentWeapon> WeaponClass);
 
 	/**
 	* [server + local] equips weapon from inventory
 	*
 	* @param Weapon	Weapon to equip
 	*/
-	void EquipWeapon(class AShooterWeapon* Weapon);
+	void EquipWeapon(class APreeminentWeapon* Weapon);
 
 	/**
 * [server + local] equips weapon from inventory
 *
 * @param Weapon	Weapon to equip
 */public:
-	void EquipLootBag(class ALootBag* LootBag);
+	void EquipLootBag(class APreeminentLootBag* LootBag);
 	protected:
 	/** player pressed next weapon action */
 	void OnNextWeapon();
@@ -265,7 +265,7 @@ public:
 		void StopFiring();
 
 	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
-	class AShooterWeapon* GetWeapon() const;
+	class APreeminentWeapon* GetWeapon() const;
 
 	/** get running state */
 	UFUNCTION(BlueprintCallable, Category = Pawn)
@@ -303,19 +303,19 @@ public:
 
 	/** equip weapon */
 	UFUNCTION(reliable, server, WithValidation)
-		void ServerEquipWeapon(class AShooterWeapon* NewWeapon);
+		void ServerEquipWeapon(class APreeminentWeapon* NewWeapon);
 
 	/** current weapon rep handler */
 	UFUNCTION()
-		void OnRep_CurrentWeapon(class AShooterWeapon* LastWeapon);
+		void OnRep_CurrentWeapon(class APreeminentWeapon* LastWeapon);
 
 	/** equip weapon */
 	UFUNCTION(reliable, server, WithValidation)
-		void ServerEquipLootBag(class ALootBag* LootBag);
+		void ServerEquipLootBag(class APreeminentLootBag* LootBag);
 
 	/** current weapon rep handler */
 	UFUNCTION()
-		void OnRep_CurrentLootBag(class ALootBag* LootBag);
+		void OnRep_CurrentLootBag(class APreeminentLootBag* LootBag);
 
 	/** equip weapon */
 	UFUNCTION(reliable, server, WithValidation)
@@ -325,9 +325,9 @@ public:
 		void MulticastOnThrowItem(FVector CamLoc, FRotator CamRot);
 
 	UFUNCTION(reliable, server, WithValidation)
-		void ServerRequestLootBag(AStockpile* Stockpile, AShooterCharacter* Requester);
+		void ServerRequestLootBag(APreeminentStockpile* Stockpile, APreeminentCharacter* Requester);
 
-	void GetLootBagFromStockpile(AStockpile* Stockpile, AShooterCharacter* Requester);
+	void GetLootBagFromStockpile(APreeminentStockpile* Stockpile, APreeminentCharacter* Requester);
 
 	/*Should only be used in development.*/
 	UFUNCTION(BlueprintCallable)

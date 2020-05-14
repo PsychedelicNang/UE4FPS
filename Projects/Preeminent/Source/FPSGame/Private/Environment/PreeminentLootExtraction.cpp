@@ -6,26 +6,26 @@
 #include "DrawDebugHelpers.h"
 #include "Net/UnrealNetwork.h"
 
-ALootExtraction::ALootExtraction()
+APreeminentLootExtraction::APreeminentLootExtraction()
 {
 	//Register Events
-	OnActorBeginOverlap.AddDynamic(this, &ALootExtraction::OnOverlapBegin);
-	OnActorEndOverlap.AddDynamic(this, &ALootExtraction::OnOverlapEnd);
+	OnActorBeginOverlap.AddDynamic(this, &APreeminentLootExtraction::OnOverlapBegin);
+	OnActorEndOverlap.AddDynamic(this, &APreeminentLootExtraction::OnOverlapEnd);
 }
 
-void ALootExtraction::BeginPlay()
+void APreeminentLootExtraction::BeginPlay()
 {
 	DrawDebugBox(GetWorld(), GetActorLocation(), GetComponentsBoundingBox().GetExtent(), FColor::Cyan, true, -1, 0, 5);
 }
 
-void ALootExtraction::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
+void APreeminentLootExtraction::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
 {
 	// Only update the number of bags in the zone if we are the server. The number of bags should be the same at all times for servers and clients, but let's be authoritative to be safe.
 	if (Role == ROLE_Authority)
 	{
 		if (OtherActor)
 		{
-			ALootBag* LootBag = Cast<ALootBag>(OtherActor);
+			APreeminentLootBag* LootBag = Cast<APreeminentLootBag>(OtherActor);
 			if (LootBag)
 			{
 				++NumBagsInZone;
@@ -38,14 +38,14 @@ void ALootExtraction::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor
 	}
 }
 
-void ALootExtraction::OnOverlapEnd(AActor* OverlappedActor, AActor* OtherActor)
+void APreeminentLootExtraction::OnOverlapEnd(AActor* OverlappedActor, AActor* OtherActor)
 {
 	// Only update the number of bags in the zone if we are the server. The number of bags should be the same at all times for servers and clients, but let's be authoritative to be safe.
 	if (Role == ROLE_Authority)
 	{
 		if (OtherActor)
 		{
-			ALootBag* LootBag = Cast<ALootBag>(OtherActor);
+			APreeminentLootBag* LootBag = Cast<APreeminentLootBag>(OtherActor);
 			if (LootBag)
 			{
 				--NumBagsInZone;
@@ -54,14 +54,14 @@ void ALootExtraction::OnOverlapEnd(AActor* OverlappedActor, AActor* OtherActor)
 	}
 }
 
-uint8 ALootExtraction::GetNumberOfLootBagsInZone() const
+uint8 APreeminentLootExtraction::GetNumberOfLootBagsInZone() const
 {
 	return NumBagsInZone;
 }
 
-void ALootExtraction::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void APreeminentLootExtraction::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ALootExtraction, NumBagsInZone);
+	DOREPLIFETIME(APreeminentLootExtraction, NumBagsInZone);
 }

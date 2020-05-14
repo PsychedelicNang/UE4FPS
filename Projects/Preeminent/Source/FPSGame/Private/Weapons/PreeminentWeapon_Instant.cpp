@@ -7,12 +7,12 @@
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
 
-AShooterWeapon_Instant::AShooterWeapon_Instant(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+APreeminentWeapon_Instant::APreeminentWeapon_Instant(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	//PrimaryActorTick.bCanEverTick = true;
 }
 
-void AShooterWeapon_Instant::FireWeapon()
+void APreeminentWeapon_Instant::FireWeapon()
 {
 	AActor* MyOwner = GetOwner();
 	if (MyOwner)
@@ -82,7 +82,7 @@ void AShooterWeapon_Instant::FireWeapon()
 	}
 }
 
-void AShooterWeapon_Instant::Tick(float DeltaTime)
+void APreeminentWeapon_Instant::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 

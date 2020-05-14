@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class PREEMINENT_API AShooterPlayerController : public APlayerController
+class PREEMINENT_API APreeminentPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	

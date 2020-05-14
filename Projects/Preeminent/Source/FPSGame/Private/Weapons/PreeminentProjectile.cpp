@@ -7,7 +7,7 @@
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 
-AShooterProjectile::AShooterProjectile(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+APreeminentProjectile::APreeminentProjectile(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	CollisionComp = ObjectInitializer.CreateDefaultSubobject<USphereComponent>(this, TEXT("SphereComp"));
 	CollisionComp->InitSphereRadius(5.0f);
@@ -44,13 +44,13 @@ AShooterProjectile::AShooterProjectile(const FObjectInitializer& ObjectInitializ
 	//SetLifeSpan(8.0f);
 }
 
-void AShooterProjectile::PostInitializeComponents()
+void APreeminentProjectile::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	MovementComp->OnProjectileStop.AddDynamic(this, &AShooterProjectile::OnImpact);
+	MovementComp->OnProjectileStop.AddDynamic(this, &APreeminentProjectile::OnImpact);
 	CollisionComp->MoveIgnoreActors.Add(Instigator);
 
-	AShooterWeapon_Projectile* OwnerWeapon = Cast<AShooterWeapon_Projectile>(GetOwner());
+	APreeminentWeapon_Projectile* OwnerWeapon = Cast<APreeminentWeapon_Projectile>(GetOwner());
 	if (OwnerWeapon)
 	{
 		//OwnerWeapon->ApplyWeaponConfig(WeaponConfig);
@@ -60,7 +60,7 @@ void AShooterProjectile::PostInitializeComponents()
 	MyController = GetInstigatorController();
 }
 
-void AShooterProjectile::InitVelocity(FVector& ShootDirection)
+void APreeminentProjectile::InitVelocity(FVector& ShootDirection)
 {
 	if (MovementComp)
 	{
@@ -68,7 +68,7 @@ void AShooterProjectile::InitVelocity(FVector& ShootDirection)
 	}
 }
 
-void AShooterProjectile::OnImpact(const FHitResult& HitResult)
+void APreeminentProjectile::OnImpact(const FHitResult& HitResult)
 {
 	if (Role == ROLE_Authority && !bExploded)
 	{
@@ -77,7 +77,7 @@ void AShooterProjectile::OnImpact(const FHitResult& HitResult)
 	}
 }
 
-void AShooterProjectile::Explode(const FHitResult& Impact)
+void APreeminentProjectile::Explode(const FHitResult& Impact)
 {
 	if (ParticleComp)
 	{
@@ -106,7 +106,7 @@ void AShooterProjectile::Explode(const FHitResult& Impact)
 	bExploded = true;
 }
 
-void AShooterProjectile::DisableAndDestroy()
+void APreeminentProjectile::DisableAndDestroy()
 {
 	//UAudioComponent* ProjAudioComp = FindComponentByClass<UAudioComponent>();
 	//if (ProjAudioComp && ProjAudioComp->IsPlaying())
@@ -121,7 +121,7 @@ void AShooterProjectile::DisableAndDestroy()
 }
 
 ///CODE_SNIPPET_START: AActor::GetActorLocation AActor::GetActorRotation
-void AShooterProjectile::OnRep_Exploded()
+void APreeminentProjectile::OnRep_Exploded()
 {
 	FVector ProjDirection = GetActorForwardVector();
 
@@ -140,7 +140,7 @@ void AShooterProjectile::OnRep_Exploded()
 }
 ///CODE_SNIPPET_END
 
-void AShooterProjectile::PostNetReceiveVelocity(const FVector& NewVelocity)
+void APreeminentProjectile::PostNetReceiveVelocity(const FVector& NewVelocity)
 {
 	if (MovementComp)
 	{
@@ -148,9 +148,9 @@ void AShooterProjectile::PostNetReceiveVelocity(const FVector& NewVelocity)
 	}
 }
 
-void AShooterProjectile::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+void APreeminentProjectile::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AShooterProjectile, bExploded);
+	DOREPLIFETIME(APreeminentProjectile, bExploded);
 }
