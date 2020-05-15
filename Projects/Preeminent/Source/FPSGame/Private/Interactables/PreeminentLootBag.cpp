@@ -11,28 +11,10 @@
 #include "TimerManager.h"
 #include "Interactables/PreeminentLootBag.h"
 
-// Sets default values
 APreeminentLootBag::APreeminentLootBag()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
-
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
-	//MeshComp->SetSimulatePhysics(true);
-	//MeshComp->GetPhysicsComponent
-	//MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	RootComponent = MeshComp;
-
-	//UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(GetComponentByClass(UPrimitiveComponent::StaticClass()));
-	//PrimComp->SetMassOverrideInKg(NAME_None, 10.0f, true);
-	//SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollisionComponent"));
-	//SphereCollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	//SphereCollisionComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap); // We only care about collision with Pawns
-	//SphereCollisionComp->OnComponentBeginOverlap.AddDynamic(this, &APreeminentLootBag::OnBeginOverlapSphereCollisionComponent);
-	//SphereCollisionComp->OnComponentEndOverlap.AddDynamic(this, &APreeminentLootBag::OnEndOverlapSphereCollisionComponent);
-	//SphereCollisionComp->SetupAttachment(MeshComp);
-	//SphereCollisionComp->SetSphereRadius(125.0f);
 
 	DefaultMoneyStored = 50000;
 	CarryingSpeedModifier = 0.5f;
@@ -46,7 +28,6 @@ APreeminentLootBag::APreeminentLootBag()
 	SetReplicates(true);
 }
 
-// Called when the game starts or when spawned
 void APreeminentLootBag::BeginPlay()
 {
 	Super::BeginPlay();
@@ -56,83 +37,8 @@ void APreeminentLootBag::BeginPlay()
 	PrimComp->SetMassOverrideInKg(NAME_None, GetMassOfBagInKg(), true);
 }
 
-void APreeminentLootBag::FinishDropping()
-{
-	// Set our linear damping back to 0 so gravity affects us and we land on the ground
-	PrimComp->SetLinearDamping(0.0f);
-}
-
-//void APreeminentLootBag::OnBeginOverlapSphereCollisionComponent(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
-//{
-//	UE_LOG(LogTemp, Log, TEXT("Overlapped!"));
-//	
-//	// Only allow someone to pick us up if we're not already owned
-//	if (OtherActor && !IsAttachedToPawn())
-//	{
-//		APreeminentCharacter* Player = Cast<APreeminentCharacter>(OtherActor);
-//	}
-//}
-//
-//void APreeminentLootBag::OnEndOverlapSphereCollisionComponent(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex)
-//{
-//	UE_LOG(LogTemp, Log, TEXT("Stopped Overlapping!"));
-//
-//	// Stop the actor from being able to pick us up
-//	if (OtherActor)
-//	{
-//		APreeminentCharacter* Player = Cast<APreeminentCharacter>(OtherActor);
-//	}
-//}
-
-// Called every frame
-void APreeminentLootBag::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	//if (bIsEquipped)
-		//UE_LOG(LogTemp, Log, TEXT("%s %s"), (Role == ROLE_Authority) ? TEXT("True") : TEXT("False"), (PrimComp->IsCollisionEnabled()) ? TEXT("True") : TEXT("False"));
-}
-
-float APreeminentLootBag::GetCarryingLootBagSpeedModifier() const
-{
-	return CarryingSpeedModifier;
-}
-
-void APreeminentLootBag::DetachMeshFromPawn()
-{
-	MeshComp->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-
-	PrimComp->SetSimulatePhysics(true);
-	MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-}
-
-void APreeminentLootBag::OnEnterInventory(APreeminentCharacter* NewOwner)
-{
-	SetOwningPawn(NewOwner);
-}
-
-void APreeminentLootBag::OnLeaveInventory()
-{
-	if (Role == ROLE_Authority)
-	{
-		SetOwningPawn(NULL);
-	}
-
-	if (IsAttachedToPawn())
-	{
-		OnUnEquip();
-	}
-}
-
-bool APreeminentLootBag::IsAttachedToPawn() const
-{
-	return  bIsEquipped || bPendingEquip;
-	//return bIsEquipped || bPendingEquip;
-}
-float APreeminentLootBag::GetMassOfBagInKg() const
-{
-	return CurrentMoneyStored * 0.001f;
-}
+//////////////////////////////////////////////////////////////////////////
+// LootBag movement
 
 void APreeminentLootBag::LaunchItem(FVector LaunchVelocity)
 {
@@ -140,17 +46,6 @@ void APreeminentLootBag::LaunchItem(FVector LaunchVelocity)
 	{
 		PrimComp->AddImpulse(LaunchVelocity, NAME_None, true);
 	}
-	//if (Role == ROLE_Authority)
-	//{
-	//	if (PrimComp)
-	//	{
-	//		PrimComp->AddImpulse(LaunchVelocity, NAME_None, true);
-	//	}
-	//}
-	//else
-	//{
-	//	ServerLaunchItem(LaunchVelocity);
-	//}
 }
 
 bool APreeminentLootBag::ServerLaunchItem_Validate(FVector LaunchVelocity)
@@ -174,18 +69,49 @@ void APreeminentLootBag::StopMovementAndDrop()
 	// Note: We cannot stop physics or change the collision properties because it will say we stopped colliding with the extraction zone (Say we are no longer in the zone when in fact we are)
 }
 
-FVector APreeminentLootBag::GetMeshExtents() const
+void APreeminentLootBag::FinishDropping()
 {
-	if (MeshComp)
+	// Set our linear damping back to 0 so gravity affects us and we land on the ground
+	PrimComp->SetLinearDamping(0.0f);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Inventory
+
+void APreeminentLootBag::SetOwningPawn(APreeminentCharacter* NewOwner)
+{
+	if (MyPawn != NewOwner)
 	{
-		FVector Min;
-		FVector Max;
-		MeshComp->GetLocalBounds(Min, Max);
-		return Max - Min;
+		Instigator = NewOwner;
+		MyPawn = NewOwner;
+		// net owner for RPC calls
+		SetOwner(NewOwner);
 	}
-	else
+}
+
+void APreeminentLootBag::DetachMeshFromPawn()
+{
+	MeshComp->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+
+	PrimComp->SetSimulatePhysics(true);
+	MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+}
+
+void APreeminentLootBag::OnEnterInventory(APreeminentCharacter* NewOwner)
+{
+	SetOwningPawn(NewOwner);
+}
+
+void APreeminentLootBag::OnLeaveInventory()
+{
+	if (Role == ROLE_Authority)
 	{
-		return FVector::ZeroVector;
+		SetOwningPawn(nullptr);
+	}
+
+	if (IsAttachedToPawn())
+	{
+		OnUnEquip();
 	}
 }
 
@@ -215,21 +141,6 @@ void APreeminentLootBag::OnUnEquip()
 
 	//DetermineWeaponState();
 }
-
-void APreeminentLootBag::SetOwningPawn(APreeminentCharacter* NewOwner)
-{
-	if (MyPawn != NewOwner)
-	{
-		Instigator = NewOwner;
-		MyPawn = NewOwner;
-		// net owner for RPC calls
-		SetOwner(NewOwner);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-// Inventory
 
 bool APreeminentLootBag::ServerEquipLootBag_Validate()
 {
@@ -351,3 +262,35 @@ void APreeminentLootBag::AttachMeshToPawn()
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Accessors & Public methods
+
+float APreeminentLootBag::GetCarryingLootBagSpeedModifier() const
+{
+	return CarryingSpeedModifier;
+}
+
+bool APreeminentLootBag::IsAttachedToPawn() const
+{
+	return  bIsEquipped || bPendingEquip;
+}
+
+float APreeminentLootBag::GetMassOfBagInKg() const
+{
+	return CurrentMoneyStored * 0.001f;
+}
+
+FVector APreeminentLootBag::GetMeshExtents() const
+{
+	if (MeshComp)
+	{
+		FVector Min;
+		FVector Max;
+		MeshComp->GetLocalBounds(Min, Max);
+		return Max - Min;
+	}
+	else
+	{
+		return FVector::ZeroVector;
+	}
+}

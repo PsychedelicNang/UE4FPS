@@ -12,7 +12,6 @@ APreeminentStockpile::APreeminentStockpile()
 {
 	NumLootBagsToSpawn = 3;
 
-	//(X=-730.000000,Y=-600.000000,Z=440.000000)
 	SetReplicates(true);
 }
 
@@ -52,7 +51,6 @@ void APreeminentStockpile::BeginPlay()
 
 	UShapeComponent* CollisionComponent = GetCollisionComponent();
 	CollisionComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
-	//CollisionComponent->SetCollisionResponseToChannel()
 
 	SetOwner(GetWorld()->GetFirstPlayerController());
 }
@@ -61,11 +59,8 @@ void APreeminentStockpile::GetLootBagFromPile(APreeminentCharacter* Requester)
 {
 	UE_LOG(LogTemp, Log, TEXT("Getting loot bag %s"), (Role == ROLE_Authority) ? TEXT("True") : TEXT("False"));
 
-	//SetOwner(Requester);
-	
 	if (Role < ROLE_Authority)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Not server %s"), (Role == ROLE_Authority) ? TEXT("True") : TEXT("False"));
 		// net owner for RPC calls
 		ServerRequestLootBag(Requester);
 	}
@@ -78,16 +73,7 @@ void APreeminentStockpile::GetLootBagFromPile(APreeminentCharacter* Requester)
 			APreeminentLootBag* LootBag = LootBagPool.Pop();
 			Requester->EquipLootBag(LootBag);
 		}
-		else
-		{
-			UE_LOG(LogTemp, Log, TEXT("Shit was NULL man"));
-		}
 	}
-	else
-	{
-		UE_LOG(LogTemp, Log, TEXT("Shit was empty man"));
-	}
-
 }
 
 bool APreeminentStockpile::ServerRequestLootBag_Validate(APreeminentCharacter* Requester)

@@ -5,7 +5,6 @@
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 
-// Sets default values for this component's properties
 UPreeminentHealthComponent::UPreeminentHealthComponent()
 {
 	DefaultHealth = 100;
@@ -17,7 +16,6 @@ UPreeminentHealthComponent::UPreeminentHealthComponent()
 	HealthPartitionIndex = 0;
 }
 
-// Called when the game starts
 void UPreeminentHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -39,14 +37,6 @@ void UPreeminentHealthComponent::BeginPlay()
 	{
 		Health = DefaultHealth;
 	}
-}
-
-// Called every frame
-void UPreeminentHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
 }
 
 void UPreeminentHealthComponent::HandleTakeAnyDamage(AActor * DamagedActor, float Damage, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
@@ -126,7 +116,6 @@ void UPreeminentHealthComponent::Heal(float HealAmount)
 	}
 }
 
-// For testing only! Remove in official builds...
 void UPreeminentHealthComponent::KillSelf()
 {
 	if (GetOwnerRole() == ROLE_Authority)
@@ -154,9 +143,17 @@ void UPreeminentHealthComponent::ServerKillSelf_Implementation()
 	KillSelf();
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Accessors & Public methods
+
 float UPreeminentHealthComponent::GetHealth() const
 {
 	return Health;
+}
+
+uint8 UPreeminentHealthComponent::GetTeamNumber() const
+{
+	return TeamNum;
 }
 
 TArray<int32> UPreeminentHealthComponent::GetHealthPartitions() const
