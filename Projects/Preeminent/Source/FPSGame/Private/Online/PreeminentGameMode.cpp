@@ -31,6 +31,8 @@ APreeminentGameMode::APreeminentGameMode()
 void APreeminentGameMode::StartPlay()
 {
 	Super::StartPlay();
+	
+	/*Find all game objects needed for this game mode*/
 
 	// Find all of the PlayerExtractions in the level
 	TArray<AActor*> FoundPlayerExtractions;
@@ -52,12 +54,7 @@ void APreeminentGameMode::StartPlay()
 		//LootExtraction->SetOwner(this);
 	}
 
-	//FActorSpawnParameters SpawnInfo;
-	//SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	//FVector Location = FVector(-730.000000, -600.000000, 440.000000);
-	//APreeminentStockpile* TheStockpile = GetWorld()->SpawnActor<APreeminentStockpile>(StockpilePrefab, Location, FRotator::ZeroRotator, SpawnInfo);
-	//TheStockpile->SetOwner(this);
-
+	// Find all of the Stockpiles in the level
 	TArray<AActor*> FoundStockpiles;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APreeminentStockpile::StaticClass(), FoundStockpiles);
 

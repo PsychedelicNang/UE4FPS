@@ -21,16 +21,10 @@
 #include "TimerManager.h"
 #include "PreeminentGameMode.h"
 
-// Sets default values
 APreeminentCharacter::APreeminentCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UPreeminentCharacterMovement>(ACharacter::CharacterMovementComponentName))
 {
-	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	//SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
-	//SpringArmComp->bUsePawnControlRotation = true;
-	//SpringArmComp->SetupAttachment(RootComponent);
 
 	// Create a CameraComponent	
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
@@ -51,7 +45,6 @@ APreeminentCharacter::APreeminentCharacter(const FObjectInitializer& ObjectIniti
 	Mesh1PComp->RelativeRotation = FRotator(2.0f, -15.0f, 5.0f);
 	Mesh1PComp->RelativeLocation = FVector(0, 0, -155.0f);
 
-
 	//*Correct location for ShooterGame Character Assets!**//
 	//Mesh1PComp->RelativeRotation = FRotator(0.0f, -90.0f, 0.0f);
 	//Mesh1PComp->RelativeLocation = FVector(0, 0, -150.0f);
@@ -69,12 +62,6 @@ APreeminentCharacter::APreeminentCharacter(const FObjectInitializer& ObjectIniti
 	GetMesh()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Block);
 	//GetMesh()->SetCollisionResponseToChannel(COLLISION_PROJECTILE, ECR_Block);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
-
-
-	//// Create a gun mesh component
-	//GunMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun"));
-	//GunMeshComp->CastShadow = false;
-	//GunMeshComp->SetupAttachment(Mesh1PComp, "GripPoint");
 
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 
@@ -102,14 +89,6 @@ APreeminentCharacter::APreeminentCharacter(const FObjectInitializer& ObjectIniti
 	CurrentLootBag = nullptr;
 }
 
-void APreeminentCharacter::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-
-	//SpawnDefaultInventory();
-}
-
-// Called when the game starts or when spawned
 void APreeminentCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -125,7 +104,6 @@ void APreeminentCharacter::BeginPlay()
 }
 
 
-// Called every frame
 void APreeminentCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -149,12 +127,13 @@ void APreeminentCharacter::Tick(float DeltaTime)
 	{
 		float TargetFOV = bIsTargeting ? ZoomedFOV : DefaultFOV;
 
+		// Lerp to our desired FOV
 		float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaTime, CurrentWeapon ? CurrentWeapon->WeaponConfig.AimDownSightTime * 100 : ZoomedInterpSpeed);
 
 		CameraComp->SetFieldOfView(NewFOV);
 	}
 
-	if (brequest == false && !bIsCarryingLootBag && CurrentLootBag == nullptr)
+	if (bPendingRequestLootBag == false && !bIsCarryingLootBag && CurrentLootBag == nullptr)
 	{
 		if (!bIsAttemptingInteract)
 		{
@@ -202,10 +181,8 @@ void APreeminentCharacter::Tick(float DeltaTime)
 
 				if (Stockpile)
 				{
-					brequest = true;
+					bPendingRequestLootBag = true;
 					GetLootBagFromStockpile(Stockpile, this);
-					////UE_LOG(LogTemp, Log, TEXT("Trying loot bag"));
-					//Stockpile->GetLootBagFromPile(this);
 				}
 			}
 		}
@@ -220,7 +197,6 @@ void APreeminentCharacter::GetLootBagFromStockpile(APreeminentStockpile* Stockpi
 		{
 			if (Stockpile)
 			{
-				//UE_LOG(LogTemp, Log, TEXT("Trying loot bag"));
 				Stockpile->GetLootBagFromPile(Requester);
 			}
 		}
@@ -375,8 +351,6 @@ bool APreeminentCharacter::IsRunning() const
 	{
 		return false;
 	}
-
-	//return false;
 
 	return (bWantsToRun || bWantsToRunToggled) && !GetVelocity().IsZero() && (GetVelocity().GetSafeNormal2D() | GetActorForwardVector()) > -0.1;
 }
@@ -585,7 +559,7 @@ void APreeminentCharacter::SetCurrentLootBag(APreeminentLootBag* LootBag)
 	// equip new one
 	if (CurrentLootBag)
 	{
-		CurrentLootBag->SetOwningPawn(this);	// Make sure weapon's MyPawn is pointing back to us. During replication, we can't guarantee APawn::CurrentWeapon will rep after AWeapon::MyPawn!
+		CurrentLootBag->SetOwningPawn(this);	// Make sure LootBag's MyPawn is pointing back to us. During replication, we can't guarantee APawn::CurrentLootBag will rep after APreeminentootBag::MyPawn!
 
 		CurrentLootBag->OnEquip();
 	}
@@ -595,7 +569,6 @@ void APreeminentCharacter::SetCurrentLootBag(APreeminentLootBag* LootBag)
 
 USkeletalMeshComponent* APreeminentCharacter::GetSpecifcPawnMesh(bool WantFirstPerson) const
 {
-	//return Mesh1PComp;
 	return WantFirstPerson == true ? Mesh1PComp : GetMesh();
 }
 
@@ -604,14 +577,14 @@ float APreeminentCharacter::GetCarryingLootBagSpeedModifier() const
 	return CurrentLootBag ? CurrentLootBag->GetCarryingLootBagSpeedModifier() : 1.0f;
 }
 
-FName APreeminentCharacter::GetWeaponAttachPoint() const
+FName APreeminentCharacter::GetWeaponAttachPointName() const
 {
-	return WeaponAttachPoint;
+	return WeaponAttachPointName;
 }
 
-FName APreeminentCharacter::GetLootBagAttachPoint() const
+FName APreeminentCharacter::GetLootBagAttachPointName() const
 {
-	return LootBagAttachPoint;
+	return LootBagAttachPointName;
 }
 
 void APreeminentCharacter::SetCurrentWeapon(APreeminentWeapon* NewWeapon, APreeminentWeapon* LastWeapon)
@@ -627,7 +600,6 @@ void APreeminentCharacter::SetCurrentWeapon(APreeminentWeapon* NewWeapon, APreem
 		LocalLastWeapon = CurrentWeapon;
 	}
 
-	// unequip previous
 	if (LocalLastWeapon)
 	{
 		LocalLastWeapon->OnUnEquip();
@@ -635,9 +607,6 @@ void APreeminentCharacter::SetCurrentWeapon(APreeminentWeapon* NewWeapon, APreem
 
 	CurrentWeapon = NewWeapon;
 
-	//CurrentWeapon->AttachToComponent(Mesh1PComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachPoint);
-
-	// equip new one
 	if (NewWeapon)
 	{
 		NewWeapon->SetOwningPawn(this);	// Make sure weapon's MyPawn is pointing back to us. During replication, we can't guarantee APawn::CurrentWeapon will rep after AWeapon::MyPawn!
@@ -692,7 +661,7 @@ void APreeminentCharacter::MulticastOnThrowItem_Implementation(FVector CamLoc, F
 		CurrentLootBag = nullptr;
 	}
 
-	brequest = false;
+	bPendingRequestLootBag = false;
 }
 
 void APreeminentCharacter::OnThrowItem(FVector CamLoc, FRotator CamRot)
@@ -708,7 +677,7 @@ void APreeminentCharacter::OnThrowItem(FVector CamLoc, FRotator CamRot)
 		ServerThrowItem(CamLoc, CamRot);
 	}
 
-	brequest = false;
+	bPendingRequestLootBag = false;
 }
 
 void APreeminentCharacter::OnThrowPressed()
@@ -898,7 +867,6 @@ bool APreeminentCharacter::IsFirstPerson() const
 
 USkeletalMeshComponent* APreeminentCharacter::GetPawnMesh() const
 {
-	//return Mesh1PComp;
 	return IsFirstPerson() ? Mesh1PComp : GetMesh();
 }
 

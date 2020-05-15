@@ -235,7 +235,7 @@ void APreeminentLootBag::AttachMeshToPawn()
 		DetachMeshFromPawn();
 
 		// For locally controller players we attach both weapons and let the bOnlyOwnerSee, bOwnerNoSee flags deal with visibility.
-		FName AttachPoint = MyPawn->GetLootBagAttachPoint();
+		FName AttachPoint = MyPawn->GetLootBagAttachPointName();
 
 		//UE_LOG(LogTemp, Log, TEXT("Health Changed: %s"), *AttachPoint.ToString());
 

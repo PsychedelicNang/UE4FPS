@@ -173,7 +173,7 @@ void APreeminentWeapon::AttachMeshToPawn()
 		DetachMeshFromPawn();
 
 		// For locally controller players we attach both weapons and let the bOnlyOwnerSee, bOwnerNoSee flags deal with visibility.
-		FName AttachPoint = MyPawn->GetWeaponAttachPoint();
+		FName AttachPoint = MyPawn->GetWeaponAttachPointName();
 
 		if (MyPawn->IsLocallyControlled() == true)
 		{

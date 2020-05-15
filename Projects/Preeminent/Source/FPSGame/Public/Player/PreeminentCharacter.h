@@ -6,36 +6,30 @@
 #include "GameFramework/Character.h"
 #include "PreeminentCharacter.generated.h"
 
+/*
+* Main character (Pawn) in Preeminent
+*/
 UCLASS(Abstract)
 class PREEMINENT_API APreeminentCharacter : public ACharacter
 {
-	/*Used GENERATED_UCLASS_BODY() if using a member initializer list*/
+	/*Use GENERATED_UCLASS_BODY() if using a member initializer list*/
 	GENERATED_UCLASS_BODY()
 
-		/*Used GENERATED_BODY() if using a default constructor*/
+	/*Use GENERATED_BODY() if using a default constructor*/
 	//	GENERATED_BODY()
-	//
 	//public:
 	//	APreeminentCharacter();
-
-	/** spawn inventory, setup initial variables */
-	virtual void PostInitializeComponents() override;
 
 	/** get mesh component */
 	USkeletalMeshComponent* GetPawnMesh() const;
 
-public:
-	/** play anim montage */
-	virtual float PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None) override;
-
-	/** stop playing montage */
-	virtual void StopAnimMontage(class UAnimMontage* AnimMontage) override;
+	/* True if this pawn is requesting to pick up a LootBag from a stockpile*/
+	bool bPendingRequestLootBag;
 
 protected:
 
-	/** get aim offsets */
-	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
-		FRotator GetAimOffsets() const;
+	//////////////////////////////////////////////////////////////////////////
+	// Components
 
 	/** Pawn mesh: 1st person view  */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
@@ -48,13 +42,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UPreeminentHealthComponent* HealthComp;
 
+	//////////////////////////////////////////////////////////////////////////
+	// Fields
+
 	bool bWantsToZoom;
 
 	// Pawn died previously
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
-		bool bDied;
+		uint8 bDied : 1;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 45, ClampMax = 120.0f))
 		float ZoomedFOV;
 
 	float DefaultFOV;
@@ -62,24 +59,48 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.1, ClampMax = 100.0f))
 		float ZoomedInterpSpeed;
 
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Inventory, ReplicatedUsing = OnRep_CurrentWeapon)
-	class APreeminentWeapon* CurrentWeapon;
-
 	/** modifier for max movement speed */
-	UPROPERTY(EditDefaultsOnly, Category = Pawn)
+	UPROPERTY(EditDefaultsOnly, Category = Pawn, meta = (ClampMin = 0.1, ClampMax = 1.0f))
 		float TargetingSpeedModifier;
 
 	/** modifier for max movement speed */
-	UPROPERTY(EditDefaultsOnly, Category = Pawn)
+	UPROPERTY(EditDefaultsOnly, Category = Pawn, meta = (ClampMin = 1.0, ClampMax = 10.0f))
 		float RunningSpeedModifier;
+
+	UPROPERTY(Transient, Replicated)
+		uint8 bWantsToRun : 1;
+
+	bool bWantsToRunToggled;
+
+	UPROPERTY(Transient, Replicated)
+		uint8 bIsTargeting : 1;
+
+	uint8 bWantsToFire;
+
+	UPROPERTY(Transient, Replicated)
+		uint8 bIsCarryingLootBag : 1;
+
+	bool bCanInteractWithObj;
+
+	// Distance from which this pawn can interact with
+	UPROPERTY(EditDefaultsOnly, Category = Player)
+		float InteractableDistance;
+
+	float LaunchStrength;
+
+	uint8 bIsAttemptingInteract : 1;
+	float InteractHeldTime;
+
+	//////////////////////////////////////////////////////////////////////////
+	// Inventory
 
 	/** socket or bone name for attaching weapon mesh */
 	UPROPERTY(EditDefaultsOnly, Category = Inventory)
-		FName WeaponAttachPoint;
+		FName WeaponAttachPointName;
 
 	/** socket or bone name for attaching lootbags */
 	UPROPERTY(EditDefaultsOnly, Category = Inventory)
-		FName LootBagAttachPoint;
+		FName LootBagAttachPointName;
 
 	/** default inventory list */
 	UPROPERTY(EditDefaultsOnly, Category = Inventory)
@@ -92,33 +113,27 @@ protected:
 	UPROPERTY(Replicated, ReplicatedUsing = OnRep_CurrentLootBag)
 	class APreeminentLootBag* CurrentLootBag;
 
-	UPROPERTY(Transient, Replicated)
-	uint8 bWantsToRun : 1;
-
-	bool bWantsToRunToggled;
-
-	UPROPERTY(Transient, Replicated)
-	uint8 bIsTargeting : 1;
-
-	uint8 bWantsToFire;
-
-	UPROPERTY(Transient, Replicated)
-	uint8 bIsCarryingLootBag : 1;
-
-	bool bCanInteractWithObj;
-
-	UPROPERTY(EditDefaultsOnly, Category = Player)
-		// Distance from which this pawn can interact with distance from
-		float InteractableDistance;
-
-	float LaunchStrength;
-
-	uint8 bIsAttemptingInteract : 1;
-	float InteractHeldTime;
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Inventory, ReplicatedUsing = OnRep_CurrentWeapon)
+	class APreeminentWeapon* CurrentWeapon;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	//////////////////////////////////////////////////////////////////////////
+	// Event handlers
+
+	UFUNCTION()
+		void OnHealthChanged(class UPreeminentHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+
+	//////////////////////////////////////////////////////////////////////////
+	// Input handlers
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	void MoveForward(float Value);
 
@@ -142,9 +157,6 @@ protected:
 
 	void EndInteract();
 
-	/** [server + local] change running state */
-	void SetRunning(bool bNewRunning, bool bToggle);
-
 	/** player pressed run action */
 	void OnStartRunning();
 
@@ -154,13 +166,6 @@ protected:
 	/** player released run action */
 	void OnStopRunning();
 
-	///** [server + local] change targeting state */
-	void SetTargeting(bool bNewTargeting);
-
-	/** update targeting state */
-	UFUNCTION(reliable, server, WithValidation)
-		void ServerSetTargeting(bool bNewTargeting);
-
 	/** player pressed targeting action */
 	void OnStartTargeting();
 
@@ -169,94 +174,40 @@ protected:
 
 	/** [local] starts weapon fire */
 	void OnStartFiring();
-	
+
 	/** [local] stops weapon fire */
 	void OnStopFiring();
 
-	/** update targeting state */
-	UFUNCTION(reliable, server, WithValidation)
-		void ServerSetRunning(bool bNewRunning, bool bToggle);
+	void OnThrowPressed();
 
-	UFUNCTION()
-		void OnHealthChanged(class UPreeminentHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
-
-	/*Responds to a weapon being fired from this character*/
-	UFUNCTION()
-		void HandleOnWeaponFired(class APreeminentWeapon* WeaponFired);
-
-	/** [server] spawns default inventory */
-	void SpawnDefaultInventory();
-
-	/** [server] remove all weapons from inventory and destroy them */
-	void DestroyInventory();
-
-
-	/** updates current weapon */
-	void SetCurrentWeapon(class APreeminentWeapon* NewWeapon, class APreeminentWeapon* LastWeapon = nullptr);
-
-	void SetCurrentLootBag(APreeminentLootBag* LootBag);
-
-	//////////////////////////////////////////////////////////////////////////
-	// Inventory
-
-	/**
-	* [server] add weapon to inventory
-	*
-	* @param Weapon	Weapon to add.
-	*/
-	void AddWeapon(class APreeminentWeapon* Weapon);
-
-	/**
-	* [server] remove weapon from inventory
-	*
-	* @param Weapon	Weapon to remove.
-	*/
-	void RemoveWeapon(class APreeminentWeapon* Weapon);
-
-	/**
-	* Find in inventory
-	*
-	* @param WeaponClass	Class of weapon to find.
-	*/
-	class APreeminentWeapon* FindWeapon(TSubclassOf<class APreeminentWeapon> WeaponClass);
-
-	/**
-	* [server + local] equips weapon from inventory
-	*
-	* @param Weapon	Weapon to equip
-	*/
-	void EquipWeapon(class APreeminentWeapon* Weapon);
-
-	/**
-* [server + local] equips weapon from inventory
-*
-* @param Weapon	Weapon to equip
-*/public:
-	void EquipLootBag(class APreeminentLootBag* LootBag);
-	protected:
 	/** player pressed next weapon action */
 	void OnNextWeapon();
 
 	/** player pressed prev weapon action */
 	void OnPrevWeapon();
 
+	//////////////////////////////////////////////////////////////////////////
+	// Action handling
+
+	/** [server + local] change running state */
+	void SetRunning(bool bNewRunning, bool bToggle);
+
+	///** [server + local] change targeting state */
+	void SetTargeting(bool bNewTargeting);
+
+	/** update targeting state */
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerSetTargeting(bool bNewTargeting);
+
+	/** update targeting state */
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerSetRunning(bool bNewRunning, bool bToggle);
+
+	/*Responds to a weapon being fired from this character*/
+	UFUNCTION()
+		void HandleOnWeaponFired(class APreeminentWeapon* WeaponFired);
+
 	void OnThrowItem(FVector CamLoc, FRotator CamRot);
-
-	void OnThrowPressed();
-
-public:
-	/** get camera view type */
-	UFUNCTION(BlueprintCallable, Category = Mesh)
-		virtual bool IsFirstPerson() const;
-
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	virtual FVector GetPawnViewLocation() const override;
 
 	UFUNCTION(BlueprintCallable, Category = "Player")
 		void BeginFiring();
@@ -264,42 +215,61 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Player")
 		void StopFiring();
 
-	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
-	class APreeminentWeapon* GetWeapon() const;
+	void GetLootBagFromStockpile(APreeminentStockpile* Stockpile, APreeminentCharacter* Requester);
 
-	/** get running state */
-	UFUNCTION(BlueprintCallable, Category = Pawn)
-	bool IsRunning() const;
+	/*Should only be used in development.*/
+	UFUNCTION(BlueprintCallable)
+		bool RequestRestartDeadPlayers();
 
-	/** get targeting state */
-	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
-	bool IsTargeting() const;
+	UFUNCTION(reliable, server, WithValidation)
+		void ServerRequestRestartDeadPlayers();
 
-	/** get firing state */
-	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
-		bool IsFiring() const;
+	//////////////////////////////////////////////////////////////////////////
+	// Inventory
 
-	/** get firing state */
-	UFUNCTION(BlueprintCallable, Category = Pawn)
-		bool IsCarryingLootBag() const;
+	/** [server] spawns default inventory */
+	void SpawnDefaultInventory();
 
-	/** get weapon taget modifier speed	*/
-	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
-		float GetTargetingSpeedModifier() const;
+	/** [server] remove all weapons from inventory and destroy them */
+	void DestroyInventory();
 
-	/** get the modifier value for running speed */
-	UFUNCTION(BlueprintCallable, Category = Pawn)
-		float GetRunningSpeedModifier() const;
+	/** updates current weapon */
+	void SetCurrentWeapon(class APreeminentWeapon* NewWeapon, class APreeminentWeapon* LastWeapon = nullptr);
 
-	/** get the modifier value for running speed */
-	UFUNCTION(BlueprintCallable, Category = Pawn)
-		float GetCarryingLootBagSpeedModifier() const;
+	void SetCurrentLootBag(APreeminentLootBag* LootBag);
 
-	/** get weapon attach point */
-	FName GetWeaponAttachPoint() const;
+	/**
+	* [server] add weapon to inventory
+	* @param Weapon	Weapon to add.
+	*/
+	void AddWeapon(class APreeminentWeapon* Weapon);
 
-	/** get weapon attach point */
-	FName GetLootBagAttachPoint() const;
+	/**
+	* [server] remove weapon from inventory
+	* @param Weapon	Weapon to remove.
+	*/
+	void RemoveWeapon(class APreeminentWeapon* Weapon);
+
+	/**
+	* Find in inventory
+	* @param WeaponClass	Class of weapon to find.
+	*/
+	class APreeminentWeapon* FindWeapon(TSubclassOf<class APreeminentWeapon> WeaponClass);
+
+	/**
+	* [server + local] equips weapon from inventory
+	* @param Weapon	Weapon to equip
+	*/
+	void EquipWeapon(class APreeminentWeapon* Weapon);
+
+public:
+	/**
+	* [server + local] equips loot bag from inventory
+	* @param LootBag loot bag to equip
+	*/
+	void EquipLootBag(class APreeminentLootBag* LootBag);
+
+public:
 
 	/** equip weapon */
 	UFUNCTION(reliable, server, WithValidation)
@@ -327,21 +297,69 @@ public:
 	UFUNCTION(reliable, server, WithValidation)
 		void ServerRequestLootBag(APreeminentStockpile* Stockpile, APreeminentCharacter* Requester);
 
-	void GetLootBagFromStockpile(APreeminentStockpile* Stockpile, APreeminentCharacter* Requester);
+public:
+	/** play anim montage */
+	virtual float PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None) override;
 
-	/*Should only be used in development.*/
-	UFUNCTION(BlueprintCallable)
-		bool RequestRestartDeadPlayers();
-
-	UFUNCTION(reliable, server, WithValidation)
-		void ServerRequestRestartDeadPlayers();
+	/** stop playing montage */
+	virtual void StopAnimMontage(class UAnimMontage* AnimMontage) override;
 
 	/*
-* Get either first or third person mesh.
-*
-* @param	WantFirstPerson		If true returns the first peron mesh, else returns the third
-*/
+	* Get either first or third person mesh.
+	*
+	* @param	WantFirstPerson		If true returns the first peron mesh, else returns the third
+	*/
 	USkeletalMeshComponent* GetSpecifcPawnMesh(bool WantFirstPerson) const;
 
-	bool brequest;
+	//////////////////////////////////////////////////////////////////////////
+	// Accessor methods
+
+	virtual FVector GetPawnViewLocation() const override;
+
+	/** get aim offsets */
+	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
+		FRotator GetAimOffsets() const;
+
+	/** get camera view type */
+	UFUNCTION(BlueprintCallable, Category = Mesh)
+		virtual bool IsFirstPerson() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
+		class APreeminentWeapon* GetWeapon() const;
+
+	/** get running state */
+	UFUNCTION(BlueprintCallable, Category = Pawn)
+		bool IsRunning() const;
+
+	/** get targeting state */
+	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
+		bool IsTargeting() const;
+
+	/** get firing state */
+	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
+		bool IsFiring() const;
+
+	/** get firing state */
+	UFUNCTION(BlueprintCallable, Category = Pawn)
+		bool IsCarryingLootBag() const;
+
+	/** get weapon taget modifier speed	*/
+	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
+		float GetTargetingSpeedModifier() const;
+
+	/** get the modifier value for running speed */
+	UFUNCTION(BlueprintCallable, Category = Pawn)
+		float GetRunningSpeedModifier() const;
+
+	/** get the modifier value for running speed */
+	UFUNCTION(BlueprintCallable, Category = Pawn)
+		float GetCarryingLootBagSpeedModifier() const;
+
+	/** get weapon attach point */
+	UFUNCTION(BlueprintCallable, Category = Pawn)
+		FName GetWeaponAttachPointName() const;
+
+	/** get weapon attach point */
+	UFUNCTION(BlueprintCallable, Category = Pawn)
+		FName GetLootBagAttachPointName() const;
 };

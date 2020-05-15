@@ -14,6 +14,7 @@ class PREEMINENT_API APreeminentGameState : public AGameStateBase
 {
 	GENERATED_BODY()
 public:
+	/*Multicast for when the mission is completed*/
 	UFUNCTION(NetMulticast, Reliable)
 		void MulticastOnMissionComplete();
 };
