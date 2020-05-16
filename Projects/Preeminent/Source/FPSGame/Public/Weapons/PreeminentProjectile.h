@@ -7,10 +7,6 @@
 #include "Weapons/PreeminentWeapon_Projectile.h"
 #include "PreeminentProjectile.generated.h"
 
-class UProjectileMovementComponent;
-class USphereComponent;
-class UParticleSystemComponent;
-
 UCLASS(Abstract, Blueprintable)
 class PREEMINENT_API APreeminentProjectile : public AActor
 {
@@ -29,14 +25,14 @@ class PREEMINENT_API APreeminentProjectile : public AActor
 private:
 	/** movement component */
 	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
-		UProjectileMovementComponent* MovementComp;
+		class UProjectileMovementComponent* MovementComp;
 
 	/** collisions */
 	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
-		USphereComponent* CollisionComp;
+		class USphereComponent* CollisionComp;
 
 	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
-		UParticleSystemComponent* ParticleComp;
+		class UParticleSystemComponent* ParticleComp;
 protected:
 
 	///** effects for explosion */
@@ -47,7 +43,7 @@ protected:
 	TWeakObjectPtr<AController> MyController;
 
 	/** projectile data */
-	struct FProjectileWeaponData WeaponConfig;
+	FProjectileWeaponData WeaponConfig;
 
 	/** did it explode? */
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_Exploded)

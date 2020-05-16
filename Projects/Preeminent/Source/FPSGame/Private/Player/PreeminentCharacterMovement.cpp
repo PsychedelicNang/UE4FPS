@@ -4,14 +4,10 @@
 #include "PreeminentCharacterMovement.h"
 #include "PreeminentCharacter.h"
 
-//----------------------------------------------------------------------//
-// UPawnMovementComponent
-//----------------------------------------------------------------------//
 UPreeminentCharacterMovement::UPreeminentCharacterMovement(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
-
 
 float UPreeminentCharacterMovement::GetMaxSpeed() const
 {

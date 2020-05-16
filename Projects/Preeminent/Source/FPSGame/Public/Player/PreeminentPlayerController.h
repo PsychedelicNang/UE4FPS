@@ -7,7 +7,7 @@
 #include "PreeminentPlayerController.generated.h"
 
 /**
- * 
+ * Player controller for main character (Pawn) in Preeminent
  */
 UCLASS()
 class PREEMINENT_API APreeminentPlayerController : public APlayerController
@@ -15,6 +15,7 @@ class PREEMINENT_API APreeminentPlayerController : public APlayerController
 	GENERATED_BODY()
 	
 public:
+	/* Event for when the mission has been completed*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "PlayerController")
 		void OnMissionComplete();
 };

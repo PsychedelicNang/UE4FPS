@@ -87,6 +87,9 @@ APreeminentCharacter::APreeminentCharacter(const FObjectInitializer& ObjectIniti
 	LaunchStrength = 1000.0f;
 
 	CurrentLootBag = nullptr;
+
+	WeaponAttachPointName = "WeaponSocket";
+	LootBagAttachPointName = "LootBagPoint";
 }
 
 void APreeminentCharacter::BeginPlay()
